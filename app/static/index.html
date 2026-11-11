@@ -619,6 +619,103 @@
     </div>
   </dialog>
 
+  <!-- Edit Application Dialog -->
+  <dialog id="dialog-edit-app" class="dashboard-dialog" closedby="any">
+    <div class="dialog-content">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2 text-primary"></i>Modifica Applicazione</h5>
+        <button type="button" class="btn-close" onclick="closeDialog('dialog-edit-app')"></button>
+      </div>
+      <form id="form-edit-app" onsubmit="handleUpdateApp(event)">
+        <input type="hidden" id="edit-app-id">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nome Applicazione</label>
+          <input type="text" class="form-control" id="edit-app-name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Descrizione</label>
+          <textarea class="form-control" id="edit-app-desc" rows="2"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Rate Limit (richieste/minuto)</label>
+          <input type="number" class="form-control" id="edit-app-rate-limit" min="1" max="10000" value="120" required>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" onclick="closeDialog('dialog-edit-app')">Annulla</button>
+          <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Edit Telegram Dialog -->
+  <dialog id="dialog-edit-telegram" class="dashboard-dialog" closedby="any">
+    <div class="dialog-content">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2 text-info"></i>Modifica Bot Telegram</h5>
+        <button type="button" class="btn-close" onclick="closeDialog('dialog-edit-telegram')"></button>
+      </div>
+      <form id="form-edit-telegram" onsubmit="handleUpdateTelegram(event)">
+        <input type="hidden" id="edit-telegram-id">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nome Configurazione</label>
+          <input type="text" class="form-control" id="edit-telegram-name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Default Chat ID</label>
+          <input type="text" class="form-control font-monospace" id="edit-telegram-chat-id" placeholder="es. 12345678 o -100...">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nuovo Bot Token (Lascia vuoto per non modificare)</label>
+          <input type="password" class="form-control font-monospace" id="edit-telegram-bot-token" placeholder="Incolla solo se desideri sostituirlo...">
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" onclick="closeDialog('dialog-edit-telegram')">Annulla</button>
+          <button type="submit" class="btn btn-info text-white">Aggiorna Telegram</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Edit Email Dialog -->
+  <dialog id="dialog-edit-gmail" class="dashboard-dialog" closedby="any">
+    <div class="dialog-content">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2 text-danger"></i>Modifica Configurazione Email</h5>
+        <button type="button" class="btn-close" onclick="closeDialog('dialog-edit-gmail')"></button>
+      </div>
+      <form id="form-edit-gmail" onsubmit="handleUpdateGmail(event)">
+        <input type="hidden" id="edit-gmail-id">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nome Configurazione</label>
+          <input type="text" class="form-control" id="edit-gmail-name" required>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-8">
+            <label class="form-label fw-semibold">Host SMTP</label>
+            <input type="text" class="form-control font-monospace" id="edit-gmail-smtp-host" required>
+          </div>
+          <div class="col-4">
+            <label class="form-label fw-semibold">Porta</label>
+            <input type="number" class="form-control font-monospace" id="edit-gmail-smtp-port" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Indirizzo Email</label>
+          <input type="email" class="form-control" id="edit-gmail-email" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nuova Password (Lascia vuoto per non modificare)</label>
+          <input type="password" class="form-control font-monospace" id="edit-gmail-password" placeholder="Incolla solo se desideri sostituirla...">
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" onclick="closeDialog('dialog-edit-gmail')">Annulla</button>
+          <button type="submit" class="btn btn-danger">Aggiorna Email</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
   <!-- Toast Notification Container -->
   <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
 

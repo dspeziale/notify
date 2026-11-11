@@ -400,6 +400,9 @@ function renderApplicationsTable() {
         <td>${formatDate(app.created_at)}</td>
         <td class="text-end">
           <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary" onclick="openEditAppDialog('${app.id}')" title="Modifica Applicazione">
+              <i class="bi bi-pencil me-1"></i>Modifica
+            </button>
             <button type="button" class="btn btn-outline-primary" onclick="promptRegenerateKey('${app.id}', '${escapeHtml(app.name)}')">
               <i class="bi bi-key me-1"></i>Rigenera Key
             </button>
@@ -486,7 +489,40 @@ async function promptDeleteApp(appId, appName) {
     loadApplications();
     loadTelegramConfigs();
     loadGmailConfigs();
-    loadSmtpConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
+  }
+}
+
+function openEditAppDialog(appId) {
+  const app = state.applications.find(a => a.id === appId);
+  if (!app) return;
+
+  document.getElementById('edit-app-id').value = app.id;
+  document.getElementById('edit-app-name').value = app.name || '';
+  document.getElementById('edit-app-desc').value = app.description || '';
+  document.getElementById('edit-app-rate-limit').value = app.rate_limit_per_minute || 120;
+
+  openDialog('dialog-edit-app');
+}
+
+async function handleUpdateApp(e) {
+  e.preventDefault();
+  const appId = document.getElementById('edit-app-id').value;
+  const name = document.getElementById('edit-app-name').value.trim();
+  const description = document.getElementById('edit-app-desc').value.trim();
+  const rateLimit = parseInt(document.getElementById('edit-app-rate-limit').value, 10) || 120;
+
+  try {
+    await apiCall(`/api/v1/admin/applications/${appId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name, description, rate_limit_per_minute: rateLimit })
+    });
+
+    closeDialog('dialog-edit-app');
+    showToast(`Applicazione "${name}" aggiornata con successo!`, 'success');
+    loadApplications();
     loadStats();
   } catch (err) {
     // handled
@@ -542,6 +578,9 @@ function renderTelegramTable() {
         <td>${formatDate(c.created_at)}</td>
         <td class="text-end">
           <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary" onclick="openEditTelegramDialog('${c.id}')" title="Modifica Configurazione">
+              <i class="bi bi-pencil me-1"></i>Modifica
+            </button>
             <button type="button" class="btn btn-outline-info" onclick="quickTestTelegram('${c.id}')">
               <i class="bi bi-send me-1"></i>Test
             </button>
@@ -576,6 +615,48 @@ async function handleCreateTelegram(e) {
     });
     closeDialog('dialog-new-telegram');
     showToast('Bot Telegram salvato con successo!', 'success');
+    loadTelegramConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
+  }
+}
+
+function openEditTelegramDialog(configId) {
+  const cfg = state.telegramConfigs.find(c => c.id === configId);
+  if (!cfg) return;
+
+  document.getElementById('edit-telegram-id').value = cfg.id;
+  document.getElementById('edit-telegram-name').value = cfg.name || '';
+  document.getElementById('edit-telegram-chat-id').value = cfg.default_chat_id || cfg.chat_id || '';
+  document.getElementById('edit-telegram-bot-token').value = '';
+
+  openDialog('dialog-edit-telegram');
+}
+
+async function handleUpdateTelegram(e) {
+  e.preventDefault();
+  const configId = document.getElementById('edit-telegram-id').value;
+  const name = document.getElementById('edit-telegram-name').value.trim();
+  const chatId = document.getElementById('edit-telegram-chat-id').value.trim() || null;
+  const botToken = document.getElementById('edit-telegram-bot-token').value.trim();
+
+  const payload = {
+    name: name,
+    default_chat_id: chatId
+  };
+  if (botToken) {
+    payload.bot_token = botToken;
+  }
+
+  try {
+    await apiCall(`/api/v1/admin/telegram/${configId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+
+    closeDialog('dialog-edit-telegram');
+    showToast(`Configurazione Telegram "${name}" aggiornata!`, 'success');
     loadTelegramConfigs();
     loadStats();
   } catch (err) {
@@ -657,6 +738,9 @@ function renderGmailTable() {
         <td>${formatDate(c.created_at)}</td>
         <td class="text-end">
           <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary" onclick="openEditGmailDialog('${c.id}')" title="Modifica Configurazione">
+              <i class="bi bi-pencil me-1"></i>Modifica
+            </button>
             <button type="button" class="btn btn-outline-danger" onclick="quickTestGmail('${c.id}')">
               <i class="bi bi-send me-1"></i>Test
             </button>
@@ -705,6 +789,54 @@ async function handleCreateGmail(e) {
     });
     closeDialog('dialog-new-gmail');
     showToast('Configurazione Email salvata con successo!', 'success');
+    loadGmailConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
+  }
+}
+
+function openEditGmailDialog(configId) {
+  const cfg = state.gmailConfigs.find(c => c.id === configId);
+  if (!cfg) return;
+
+  document.getElementById('edit-gmail-id').value = cfg.id;
+  document.getElementById('edit-gmail-name').value = cfg.name || '';
+  document.getElementById('edit-gmail-smtp-host').value = cfg.smtp_host || 'smtp.gmail.com';
+  document.getElementById('edit-gmail-smtp-port').value = cfg.smtp_port || 587;
+  document.getElementById('edit-gmail-email').value = cfg.email_address || cfg.username || cfg.from_email || '';
+  document.getElementById('edit-gmail-password').value = '';
+
+  openDialog('dialog-edit-gmail');
+}
+
+async function handleUpdateGmail(e) {
+  e.preventDefault();
+  const configId = document.getElementById('edit-gmail-id').value;
+  const name = document.getElementById('edit-gmail-name').value.trim();
+  const host = document.getElementById('edit-gmail-smtp-host').value.trim();
+  const port = parseInt(document.getElementById('edit-gmail-smtp-port').value, 10) || 587;
+  const email = document.getElementById('edit-gmail-email').value.trim();
+  const password = document.getElementById('edit-gmail-password').value.trim();
+
+  const payload = {
+    name: name,
+    email_address: email,
+    smtp_host: host,
+    smtp_port: port
+  };
+  if (password) {
+    payload.app_password = password;
+  }
+
+  try {
+    await apiCall(`/api/v1/admin/gmail/${configId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+
+    closeDialog('dialog-edit-gmail');
+    showToast(`Configurazione Email "${name}" aggiornata!`, 'success');
     loadGmailConfigs();
     loadStats();
   } catch (err) {
