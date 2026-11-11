@@ -1,12 +1,18 @@
-"""Background and on-demand polling service for inbound Telegram messages."""
+"""Background and on-demand polling service for inbound Telegram messages.
+Includes Redis-backed distributed locking to ensure only a single worker polls Telegram,
+preventing Telegram Bot API 409 Conflict errors across multi-process deployments.
+"""
 
 import asyncio
 import json
 import logging
+import random
 import uuid
 import httpx
+import redis.asyncio as aioredis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.config import settings
 from app.database.session import AsyncSessionLocal
 from app.models.inbound_message import InboundMessage
 from app.models.telegram_config import TelegramConfiguration
@@ -14,8 +20,50 @@ from app.services.telegram_config_service import TelegramConfigService
 
 logger = logging.getLogger(__name__)
 
-# In-memory registry to track update offsets per Telegram configuration ID
+_redis_client: aioredis.Redis | None = None
 _config_offsets: dict[uuid.UUID, int] = {}
+
+
+async def _get_redis() -> aioredis.Redis | None:
+    """Returns or creates the shared async Redis client."""
+    global _redis_client
+    if settings.REDIS_ENABLED and settings.REDIS_URL and aioredis:
+        if _redis_client is None:
+            try:
+                _redis_client = aioredis.from_url(
+                    settings.REDIS_URL,
+                    encoding="utf-8",
+                    decode_responses=True,
+                )
+            except Exception as exc:
+                logger.warning("Could not connect to Redis for Telegram poller: %s", exc)
+                _redis_client = None
+        return _redis_client
+    return None
+
+
+async def get_bot_offset(cfg_id: uuid.UUID) -> int | None:
+    """Gets the latest acknowledged update_id offset for a Telegram bot."""
+    redis = await _get_redis()
+    if redis:
+        try:
+            val = await redis.get(f"vortex:tg_offset:{cfg_id}")
+            if val is not None:
+                return int(val)
+        except Exception:
+            pass
+    return _config_offsets.get(cfg_id)
+
+
+async def set_bot_offset(cfg_id: uuid.UUID, offset: int) -> None:
+    """Persists the latest acknowledged update_id offset."""
+    _config_offsets[cfg_id] = offset
+    redis = await _get_redis()
+    if redis:
+        try:
+            await redis.set(f"vortex:tg_offset:{cfg_id}", str(offset), ex=86400 * 7)
+        except Exception:
+            pass
 
 
 async def sync_telegram_inbound_messages(db: AsyncSession) -> int:
@@ -37,19 +85,25 @@ async def sync_telegram_inbound_messages(db: AsyncSession) -> int:
                 if not bot_token:
                     continue
 
-                current_offset = _config_offsets.get(cfg.id)
-                params: dict[str, int | str] = {"limit": 100}
+                current_offset = await get_bot_offset(cfg.id)
+                params: dict[str, int | str] = {"limit": 100, "timeout": 1}
                 if current_offset is not None:
                     params["offset"] = current_offset
 
                 url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
                 res = await client.get(url, params=params)
 
-                # If a webhook was previously active, delete it to enable getUpdates
+                # Handle webhook active conflict
                 if res.status_code == 409:
-                    logger.info("Webhook conflict on Telegram bot %s. Deleting webhook to enable polling.", cfg.id)
-                    await client.post(f"https://api.telegram.org/bot{bot_token}/deleteWebhook")
-                    res = await client.get(url, params=params)
+                    err_desc = res.json().get("description", "").lower()
+                    if "webhook" in err_desc:
+                        logger.info("Webhook active on bot %s. Deleting webhook...", cfg.id)
+                        await client.post(f"https://api.telegram.org/bot{bot_token}/deleteWebhook")
+                        await asyncio.sleep(0.5)
+                        res = await client.get(url, params=params)
+                    else:
+                        logger.debug("Telegram polling conflict: %s", err_desc)
+                        continue
 
                 if res.status_code != 200:
                     logger.warning("Telegram getUpdates returned %s for config %s", res.status_code, cfg.id)
@@ -95,11 +149,11 @@ async def sync_telegram_inbound_messages(db: AsyncSession) -> int:
                     db.add(inbound)
                     total_new += 1
 
-                _config_offsets[cfg.id] = max_offset
+                await set_bot_offset(cfg.id, max_offset)
 
                 if total_new > 0:
                     await db.commit()
-                    # Acknowledge processed updates to Telegram so they aren't redelivered
+                    # Acknowledge to Telegram
                     await client.get(url, params={"offset": max_offset, "limit": 1})
                     logger.info("Saved %d new Telegram messages for bot config %s", total_new, cfg.id)
 
@@ -110,16 +164,32 @@ async def sync_telegram_inbound_messages(db: AsyncSession) -> int:
 
 
 async def run_telegram_inbound_poller():
-    """Background continuous loop polling active Telegram bots for new incoming messages."""
+    """Background continuous loop polling active Telegram bots.
+    Uses Redis distributed locking with TTL to ensure only ONE worker process polls at any given time.
+    """
     logger.info("Starting background Telegram inbound message polling worker.")
+    # Stagger worker starts
+    await asyncio.sleep(random.uniform(0.5, 3.0))
+
     while True:
         try:
-            async with AsyncSessionLocal() as db:
-                await sync_telegram_inbound_messages(db)
+            redis = await _get_redis()
+            have_lock = False
+            if redis:
+                # 8-second lease lock
+                acquired = await redis.set("vortex:telegram_poller_lock", "locked", ex=8, nx=True)
+                have_lock = bool(acquired)
+            else:
+                have_lock = True
+
+            if have_lock:
+                async with AsyncSessionLocal() as db:
+                    await sync_telegram_inbound_messages(db)
+
         except asyncio.CancelledError:
             logger.info("Telegram inbound polling worker cancelled.")
             break
         except Exception as exc:
             logger.error("Unexpected error in Telegram polling worker: %s", exc)
 
-        await asyncio.sleep(6)  # Poll interval
+        await asyncio.sleep(3.5)
