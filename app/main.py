@@ -1,5 +1,6 @@
 """FastAPI main application entrypoint."""
 
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
