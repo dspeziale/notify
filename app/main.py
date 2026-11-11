@@ -127,6 +127,15 @@ if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serves the application favicon."""
+    fav_svg = static_dir / "favicon.svg"
+    if fav_svg.exists():
+        return FileResponse(fav_svg, media_type="image/svg+xml")
+    return JSONResponse(status_code=204, content=None)
+
+
 @app.get("/dashboard", include_in_schema=False)
 async def dashboard_page():
     """Serves the administrative Web Dashboard."""

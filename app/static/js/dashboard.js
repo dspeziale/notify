@@ -737,9 +737,6 @@ async function quickTestGmail(configId) {
     // handled
   }
 }
-    // handled
-  }
-}
 
 /* ==============================================================================
    LIVE NOTIFICATION TESTER
