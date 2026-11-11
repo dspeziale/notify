@@ -8,6 +8,7 @@ from app.models.telegram_config import TelegramConfiguration
 from app.models.gmail_config import GmailConfiguration
 from app.models.notification import Notification, NotificationAttempt
 from app.models.audit_log import AuditLog
+from app.models.inbound_message import InboundMessage
 
 __all__ = [
     "Base",
@@ -19,4 +20,5 @@ __all__ = [
     "Notification",
     "NotificationAttempt",
     "AuditLog",
+    "InboundMessage",
 ]

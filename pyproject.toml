@@ -1,7 +1,7 @@
 [project]
-name = "notification-gateway"
-version = "1.0.0"
-description = "Multi-Application Notification Gateway - Enterprise-grade secure notification dispatcher"
+name = "vortex-notification-center"
+version = "0.6.2"
+description = "VORTEX - Versatile Omnichannel Routing & Telegram-Email eXchange"
 authors = [{ name = "Senior Backend Engineer" }]
 readme = "README.md"
 requires-python = ">=3.12"

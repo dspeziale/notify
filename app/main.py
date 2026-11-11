@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Enterprise Multi-Application Notification Gateway with Telegram & Gmail support",
+    description="VORTEX: Versatile Omnichannel Routing & Telegram-Email eXchange. Enterprise Notification Center.",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",

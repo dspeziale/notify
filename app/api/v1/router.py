@@ -8,6 +8,7 @@ from app.api.v1.endpoints.admin.notifications import router as admin_notificatio
 from app.api.v1.endpoints.admin.stats import router as stats_router
 from app.api.v1.endpoints.admin.telegram_configs import router as telegram_configs_router
 from app.api.v1.endpoints.health import router as health_router
+from app.api.v1.endpoints.inbound import router as inbound_router
 from app.api.v1.endpoints.metrics import router as metrics_router
 from app.api.v1.endpoints.notifications import router as notifications_router
 
@@ -15,6 +16,7 @@ api_v1_router = APIRouter()
 
 # Client Endpoints
 api_v1_router.include_router(notifications_router)
+api_v1_router.include_router(inbound_router)
 
 # Admin Endpoints
 api_v1_router.include_router(applications_router)

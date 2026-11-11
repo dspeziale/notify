@@ -279,10 +279,11 @@ function openSection(sectionId) {
   }
 
   const titles = {
-    overview: 'Panoramica del Sistema',
+    overview: 'Panoramica del Sistema - VORTEX',
     apps: 'Applicazioni & API Keys',
     telegram: 'Configurazioni Bot Telegram',
     gmail: 'Account Email (Gmail & SMTP)',
+    inbound: 'Messaggi Ricevuti (Inbound Receiver)',
     test: 'Invia Notifica di Prova Live'
   };
 
@@ -296,6 +297,7 @@ function openSection(sectionId) {
   else if (sectionId === 'apps') { loadApplications(); }
   else if (sectionId === 'telegram') { loadTelegramConfigs(); }
   else if (sectionId === 'gmail') { loadGmailConfigs(); }
+  else if (sectionId === 'inbound') { loadInboundMessages(); }
   else if (sectionId === 'test') { populateTestAppDropdown(); }
 }
 
@@ -305,6 +307,7 @@ function refreshAllData() {
   loadApplications();
   loadTelegramConfigs();
   loadGmailConfigs();
+  loadInboundMessages();
 }
 
 /* ==============================================================================
@@ -887,6 +890,51 @@ async function quickTestGmail(configId) {
   } catch (err) {
     // handled
   }
+}
+
+/* ==============================================================================
+   INBOUND MESSAGES (RECEIVING)
+   ============================================================================== */
+
+async function loadInboundMessages() {
+  try {
+    const res = await apiCall('/api/v1/inbound/messages?limit=50');
+    const tbody = document.getElementById('tbody-inbound');
+    if (!tbody) return;
+
+    const msgs = res.data || [];
+    if (msgs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Nessun messaggio in arrivo ricevuto. Gli aggiornamenti Telegram o Email compariranno qui.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = msgs.map(m => {
+      const isTg = m.provider === 'telegram';
+      const badgeProvider = isTg ? '<span class="badge bg-info text-white"><i class="bi bi-telegram me-1"></i>Telegram</span>'
+                                 : '<span class="badge bg-danger text-white"><i class="bi bi-envelope-at me-1"></i>Email</span>';
+
+      return `
+        <tr>
+          <td>${badgeProvider}</td>
+          <td>
+            <strong>${escapeHtml(m.sender_name || m.sender_identifier)}</strong>
+            <div class="small text-muted font-monospace">${escapeHtml(m.sender_identifier)}</div>
+          </td>
+          <td>${escapeHtml(m.subject || (isTg ? 'Chat Diretta' : '-'))}</td>
+          <td><div style="max-width: 380px; white-space: pre-wrap; word-break: break-word;">${escapeHtml(m.message_text || '-')}</div></td>
+          <td><span class="badge bg-success-subtle text-success border border-success-subtle">${m.status}</span></td>
+          <td>${formatDate(m.created_at)}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Failed to load inbound messages:', err);
+  }
+}
+
+function openSystemInfoDialog(e) {
+  if (e) e.preventDefault();
+  openDialog('dialog-system-info');
 }
 
 /* ==============================================================================

@@ -18,7 +18,7 @@ async def test_dashboard_static_and_html_endpoints(client: AsyncClient):
     dash_res = await client.get("/dashboard")
     assert dash_res.status_code == 200
     assert "text/html" in dash_res.headers.get("content-type", "")
-    assert "Notification Gateway" in dash_res.text
+    assert "VORTEX" in dash_res.text
     assert "table-wrapper" in dash_res.text
 
     # Static CSS
