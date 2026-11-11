@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "VORTEX - Versatile Omnichannel Routing & Telegram-Email eXchange"
     PROJECT_ACRONYM: str = "VORTEX"
     PROJECT_SUBTITLE: str = "Versatile Omnichannel Routing & Telegram-Email eXchange"
-    VERSION: str = "0.6.8"
+    VERSION: str = "0.6.9"
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool = False
     ENVIRONMENT: str = "development"

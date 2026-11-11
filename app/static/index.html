@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/static/vendor/css/adminlte.min.css">
   <link rel="stylesheet" href="/static/vendor/css/bootstrap-icons.min.css">
   <!-- Custom Styles for Dashboard enhancements & Font scaling -->
-  <link rel="stylesheet" href="/static/css/dashboard-adminlte.css?v=0.6.8">
+  <link rel="stylesheet" href="/static/css/dashboard-adminlte.css?v=0.6.9">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
   <!-- Main App Wrapper -->
@@ -170,6 +170,12 @@
               <a href="#test" class="nav-link" data-section="test">
                 <i class="nav-icon bi bi-send-fill"></i>
                 <p>Invia Notifica Test</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#guide" class="nav-link" data-section="guide">
+                <i class="nav-icon bi bi-journal-code text-warning"></i>
+                <p class="fw-semibold">Guida Integrazione API</p>
               </a>
             </li>
 
@@ -582,6 +588,824 @@
             </div>
           </section>
 
+          <!-- ==================== SECTION: API INTEGRATION GUIDE ==================== -->
+          <section id="section-guide" class="dashboard-section d-none">
+            <!-- Header Summary Card -->
+            <div class="card shadow-sm border-0 mb-4">
+              <div class="card-body p-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                  <div>
+                    <h4 class="fw-bold text-primary mb-1">
+                      <i class="bi bi-journal-code me-2"></i>Guida Completa all'Integrazione API
+                    </h4>
+                    <p class="text-muted mb-0">
+                      Istruzioni dettagliate, specifiche tecniche ed esempi di codice multi-linguaggio per tutti i possibili utilizzi di VORTEX.
+                    </p>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="openSection('test')">
+                      <i class="bi bi-send-fill me-1"></i> Invia Notifica di Prova
+                    </button>
+                    <a href="/docs" target="_blank" class="btn btn-info text-white btn-sm">
+                      <i class="bi bi-box-arrow-up-right me-1"></i> Swagger UI
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Quick Reference Pills -->
+                <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
+                  <div class="guide-pill-badge">
+                    <span class="text-muted">Base URL:</span>
+                    <code class="text-primary font-monospace" id="pill-base-url">http://10.20.23.64:8090/api/v1</code>
+                    <button class="btn btn-xs btn-link p-0 text-muted ms-1" onclick="copyRawText('http://10.20.23.64:8090/api/v1', this)" title="Copia Base URL">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                  <div class="guide-pill-badge">
+                    <span class="text-muted">Auth Header:</span>
+                    <code class="text-danger font-monospace">X-API-Key: ng_live_xxxx</code>
+                  </div>
+                  <div class="guide-pill-badge">
+                    <span class="text-muted">Formato Dati:</span>
+                    <code class="text-success font-monospace">application/json</code>
+                  </div>
+                  <div class="guide-pill-badge">
+                    <span class="text-muted">Crittografia Credenziali:</span>
+                    <span class="badge bg-secondary font-monospace">AES-256-GCM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabbed Guide Sections -->
+            <div class="card shadow-sm border-0 mb-4">
+              <div class="card-header bg-transparent p-0 border-bottom">
+                <ul class="nav nav-tabs card-header-tabs m-0 px-3 pt-2" id="guideTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-semibold" id="tab-nav-auth" data-bs-toggle="tab" data-bs-target="#tab-pane-auth" type="button" role="tab">
+                      <i class="bi bi-key-fill me-1 text-warning"></i>1. Autenticazione & Setup
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold" id="tab-nav-telegram" data-bs-toggle="tab" data-bs-target="#tab-pane-telegram" type="button" role="tab">
+                      <i class="bi bi-telegram me-1 text-info"></i>2. Notifiche Telegram
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold" id="tab-nav-email" data-bs-toggle="tab" data-bs-target="#tab-pane-email" type="button" role="tab">
+                      <i class="bi bi-envelope-at-fill me-1 text-danger"></i>3. Notifiche Email
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold" id="tab-nav-unified" data-bs-toggle="tab" data-bs-target="#tab-pane-unified" type="button" role="tab">
+                      <i class="bi bi-layers-fill me-1 text-primary"></i>4. Multicanale Unificato
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold" id="tab-nav-tracking" data-bs-toggle="tab" data-bs-target="#tab-pane-tracking" type="button" role="tab">
+                      <i class="bi bi-search me-1 text-success"></i>5. Tracking & Ricevute
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold" id="tab-nav-inbound" data-bs-toggle="tab" data-bs-target="#tab-pane-inbound" type="button" role="tab">
+                      <i class="bi bi-inbox-fill me-1 text-purple"></i>6. Ricezione Inbound
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold" id="tab-nav-errors" data-bs-toggle="tab" data-bs-target="#tab-pane-errors" type="button" role="tab">
+                      <i class="bi bi-shield-check me-1 text-secondary"></i>7. Errori & Idempotenza
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="card-body p-4">
+                <div class="tab-content" id="guideTabsContent">
+
+                  <!-- ==================== TAB 1: AUTENTICAZIONE ==================== -->
+                  <div class="tab-pane fade show active" id="tab-pane-auth" role="tabpanel">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-key-fill text-warning me-2"></i>1. Prerequisiti & Autenticazione</h5>
+                    <p class="text-secondary">
+                      Tutte le chiamate API di invio e consultazione notifiche richiedono l'autenticazione tramite una <strong>API Key</strong> associata alla tua applicazione.
+                    </p>
+
+                    <div class="row g-4 mb-4">
+                      <div class="col-md-4">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                          <h6 class="fw-bold text-primary"><i class="bi bi-1-circle me-1"></i> Crea l'Applicazione</h6>
+                          <p class="small text-muted mb-2">Vai nel menu <a href="#apps" onclick="openSection('apps')">Applicazioni & Chiavi</a> e clicca su <strong>Nuova Applicazione</strong>.</p>
+                          <span class="badge bg-primary-subtle text-primary">Es: Portale Fatture, Allarmi SOC</span>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                          <h6 class="fw-bold text-primary"><i class="bi bi-2-circle me-1"></i> Custodisci la Chiave</h6>
+                          <p class="small text-muted mb-2">Il sistema genera una chiave crittografica con prefisso <code>ng_live_...</code>. Copiala e conservala al sicuro (ad es. nelle variabili d'ambiente).</p>
+                          <span class="badge bg-warning-subtle text-warning">Mostrata una sola volta</span>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                          <h6 class="fw-bold text-primary"><i class="bi bi-3-circle me-1"></i> Collega i Canali</h6>
+                          <p class="small text-muted mb-2">Associa all'applicazione almeno una configurazione <strong>Bot Telegram</strong> o un <strong>Account Email</strong> per abilitare l'invio.</p>
+                          <span class="badge bg-success-subtle text-success">Telegram / SMTP</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Header HTTP Richiesti:</h6>
+                    <div class="table-responsive mb-4">
+                      <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Header</th>
+                            <th>Valore / Esempio</th>
+                            <th>Obbligatorio</th>
+                            <th>Descrizione</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="font-monospace fw-semibold text-danger">X-API-Key</td>
+                            <td class="font-monospace">ng_live_4a8f9c1e7d2b5a6c8e0f1d3b...</td>
+                            <td><span class="badge bg-danger">Sì (Invio)</span></td>
+                            <td>Chiave API generata per la tua applicazione mittente.</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold text-primary">Content-Type</td>
+                            <td class="font-monospace">application/json</td>
+                            <td><span class="badge bg-danger">Sì (POST)</span></td>
+                            <td>Formato dei payload JSON inviati al gateway.</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold text-secondary">X-Admin-API-Key</td>
+                            <td class="font-monospace">&lt;ADMIN_SECRET_KEY&gt;</td>
+                            <td><span class="badge bg-secondary">Solo Admin</span></td>
+                            <td>Riservato per operazioni amministrative (creazione bot, lettura log inbound globali).</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Verifica Connessione (Health Check):</h6>
+                    <p class="small text-muted">Puoi verificare in qualsiasi momento lo stato operativo di VORTEX senza autenticazione:</p>
+                    <div class="code-box-wrapper mb-3">
+                      <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-auth-curl', this)">
+                        <i class="bi bi-clipboard me-1"></i> Copia
+                      </button>
+                      <pre><code id="code-auth-curl"># Verifica stato di VORTEX
+curl -X GET http://10.20.23.64:8090/health
+
+# Risposta attesa (200 OK):
+{
+  "status": "healthy",
+  "version": "0.6.9",
+  "environment": "production",
+  "components": {
+    "database": "connected",
+    "redis": "connected",
+    "encryption": "operational"
+  }
+}</code></pre>
+                    </div>
+                  </div>
+
+                  <!-- ==================== TAB 2: TELEGRAM ==================== -->
+                  <div class="tab-pane fade" id="tab-pane-telegram" role="tabpanel">
+                    <h5 class="fw-bold mb-2"><i class="bi bi-telegram text-info me-2"></i>2. Notifiche Telegram (Invio Istantaneo)</h5>
+                    <p class="text-secondary">
+                      Invia alert, avvisi e messaggi operativi istantanei a chat personali, gruppi o canali broadcast aziendali.
+                    </p>
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                      <span class="badge bg-primary px-3 py-2">POST</span>
+                      <code class="fs-6 font-monospace">/api/v1/notifications/telegram</code>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Parametri del Payload JSON:</h6>
+                    <div class="table-responsive mb-4">
+                      <table class="table table-bordered table-sm align-middle">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Parametro</th>
+                            <th>Tipo</th>
+                            <th>Obbligatorio</th>
+                            <th>Descrizione</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="font-monospace fw-semibold">message</td>
+                            <td><code>string</code></td>
+                            <td><span class="badge bg-danger">Sì</span></td>
+                            <td>Testo del messaggio. Supporta emoji e formattazione testo standard.</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">chat_id</td>
+                            <td><code>string | int</code></td>
+                            <td><span class="badge bg-info text-white">Opzionale</span></td>
+                            <td>ID chat Telegram (es. <code>8492736068</code> o <code>@mio_canale</code>). <em>Se omesso, usa il default_chat_id configurato nel bot.</em></td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">priority</td>
+                            <td><code>string</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Priorità di recapito: <code>low</code>, <code>normal</code> (default), <code>high</code>, <code>urgent</code>.</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">idempotency_key</td>
+                            <td><code>string (UUID)</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Chiave univoca per evitare invii duplicati durante retry automatici in caso di timeout di rete.</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">metadata</td>
+                            <td><code>object</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Dati custom in formato chiave-valore per tracciamento interno (es. <code>{"ticket": "INC-4021"}</code>).</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- Language Sub-tabs for Telegram -->
+                    <ul class="nav nav-pills mb-3" id="tgLangTabs" role="tablist">
+                      <li class="nav-item"><button class="nav-link active btn-sm" data-bs-toggle="pill" data-bs-target="#tg-curl">cURL (CLI)</button></li>
+                      <li class="nav-item"><button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#tg-python">Python</button></li>
+                      <li class="nav-item"><button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#tg-node">Node.js / JS</button></li>
+                      <li class="nav-item"><button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#tg-php">PHP</button></li>
+                      <li class="nav-item"><button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#tg-csharp">C# (.NET)</button></li>
+                    </ul>
+
+                    <div class="tab-content mb-4">
+                      <!-- Telegram cURL -->
+                      <div class="tab-pane fade show active" id="tg-curl">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-tg-curl', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-tg-curl">curl -X POST http://10.20.23.64:8090/api/v1/notifications/telegram \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: ng_live_LA_TUA_CHIAVE_APPLICAZIONE" \
+  -d '{
+    "chat_id": "8492736068",
+    "message": "🚨 ALLERTA: Rilevato picco di carico sul server Database-01.\nVerifica immediata richiesta.",
+    "priority": "high",
+    "idempotency_key": "alert-db01-picco-20261111",
+    "metadata": {
+      "host": "Database-01",
+      "metric": "cpu_load",
+      "threshold": 92
+    }
+  }'</code></pre>
+                        </div>
+                      </div>
+
+                      <!-- Telegram Python -->
+                      <div class="tab-pane fade" id="tg-python">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-tg-py', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-tg-py">import requests
+
+url = "http://10.20.23.64:8090/api/v1/notifications/telegram"
+headers = {
+    "Content-Type": "application/json",
+    "X-API-Key": "ng_live_LA_TUA_CHIAVE_APPLICAZIONE"
+}
+payload = {
+    "chat_id": "8492736068",  # Oppure ometti per usare il canale default del bot
+    "message": "🚨 ALLERTA: Backup completato con successo su Storage-S3.",
+    "priority": "normal"
+}
+
+response = requests.post(url, json=payload, headers=headers, timeout=10)
+print(response.status_code, response.json())</code></pre>
+                        </div>
+                      </div>
+
+                      <!-- Telegram Node -->
+                      <div class="tab-pane fade" id="tg-node">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-tg-node', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-tg-node">const response = await fetch('http://10.20.23.64:8090/api/v1/notifications/telegram', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'ng_live_LA_TUA_CHIAVE_APPLICAZIONE'
+  },
+  body: JSON.stringify({
+    chat_id: '8492736068',
+    message: '📦 Nuovo ordine #59201 ricevuto sul portale ecommerce.',
+    priority: 'normal'
+  })
+});
+
+const result = await response.json();
+console.log('Notification ID:', result.data.notification_id);</code></pre>
+                        </div>
+                      </div>
+
+                      <!-- Telegram PHP -->
+                      <div class="tab-pane fade" id="tg-php">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-tg-php', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-tg-php">&lt;?php
+$ch = curl_init('http://10.20.23.64:8090/api/v1/notifications/telegram');
+$data = [
+    'chat_id' => '8492736068',
+    'message' => 'Notifica PHP: processo batch concluso.',
+    'priority' => 'normal'
+];
+
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'X-API-Key: ng_live_LA_TUA_CHIAVE_APPLICAZIONE'
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;</code></pre>
+                        </div>
+                      </div>
+
+                      <!-- Telegram C# -->
+                      <div class="tab-pane fade" id="tg-csharp">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-tg-cs', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-tg-cs">using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+
+var client = new HttpClient();
+client.DefaultRequestHeaders.Add("X-API-Key", "ng_live_LA_TUA_CHIAVE_APPLICAZIONE");
+
+var payload = new {
+    chat_id = "8492736068",
+    message = "Notifica C#: Servizio Windows riavviato correttamente.",
+    priority = "high"
+};
+
+var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+var response = await client.PostAsync("http://10.20.23.64:8090/api/v1/notifications/telegram", content);
+var result = await response.Content.ReadAsStringAsync();
+Console.WriteLine(result);</code></pre>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ==================== TAB 3: EMAIL ==================== -->
+                  <div class="tab-pane fade" id="tab-pane-email" role="tabpanel">
+                    <h5 class="fw-bold mb-2"><i class="bi bi-envelope-at-fill text-danger me-2"></i>3. Notifiche Email (Gmail & SMTP)</h5>
+                    <p class="text-secondary">
+                      Invia email transazionali, report formattati in HTML, alert e comunicazioni ufficiali tramite server SMTP o account Gmail.
+                    </p>
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                      <span class="badge bg-danger px-3 py-2">POST</span>
+                      <code class="fs-6 font-monospace">/api/v1/notifications/email</code>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Parametri del Payload JSON:</h6>
+                    <div class="table-responsive mb-4">
+                      <table class="table table-bordered table-sm align-middle">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Parametro</th>
+                            <th>Tipo</th>
+                            <th>Obbligatorio</th>
+                            <th>Descrizione</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="font-monospace fw-semibold">to</td>
+                            <td><code>string | string[]</code></td>
+                            <td><span class="badge bg-danger">Sì</span></td>
+                            <td>Destinatario singolo (es. <code>"info@azienda.it"</code>) o lista (es. <code>["a@azienda.it", "b@azienda.it"]</code>).</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">subject</td>
+                            <td><code>string</code></td>
+                            <td><span class="badge bg-danger">Sì</span></td>
+                            <td>Oggetto dell'email.</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">body_text</td>
+                            <td><code>string</code></td>
+                            <td><span class="badge bg-info text-white">Opzionale*</span></td>
+                            <td>Contenuto in testo semplice (*obbligatorio se body_html non è fornito).</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">body_html</td>
+                            <td><code>string</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Contenuto formattato in HTML completo (tabelle, stili inline, pulsanti).</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">cc</td>
+                            <td><code>string[]</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Elenco indirizzi email in copia conoscenza (Cc).</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">bcc</td>
+                            <td><code>string[]</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Elenco indirizzi email in copia nascosta (Bcc).</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">reply_to</td>
+                            <td><code>string</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Indirizzo a cui indirizzare eventuali risposte dell'utente.</td>
+                          </tr>
+                          <tr>
+                            <td class="font-monospace fw-semibold">idempotency_key</td>
+                            <td><code>string</code></td>
+                            <td><span class="badge bg-secondary">Opzionale</span></td>
+                            <td>Identificativo univoco per prevenire reinvii doppi.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- Language Sub-tabs for Email -->
+                    <ul class="nav nav-pills mb-3" id="mailLangTabs" role="tablist">
+                      <li class="nav-item"><button class="nav-link active btn-sm" data-bs-toggle="pill" data-bs-target="#mail-curl">cURL</button></li>
+                      <li class="nav-item"><button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#mail-python">Python</button></li>
+                      <li class="nav-item"><button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#mail-node">Node.js</button></li>
+                      <li class="nav-item"><button class="nav-link btn-sm" data-bs-toggle="pill" data-bs-target="#mail-php">PHP</button></li>
+                    </ul>
+
+                    <div class="tab-content mb-4">
+                      <!-- Email cURL -->
+                      <div class="tab-pane fade show active" id="mail-curl">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-mail-curl', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-mail-curl">curl -X POST http://10.20.23.64:8090/api/v1/notifications/email \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: ng_live_LA_TUA_CHIAVE_APPLICAZIONE" \
+  -d '{
+    "to": ["dsconsulting.italy@gmail.com"],
+    "subject": "Rapporto Giornaliero Manutenzione Sistemi",
+    "body_text": "Gentile Amministratore,\nla manutenzione notturna è stata completata regolarmente.",
+    "body_html": "<div style=\"font-family: Arial, sans-serif; padding: 15px; border: 1px solid #e0e0e0; border-radius: 6px;\"><h2 style=\"color: #0d6efd;\">Rapporto Manutenzione</h2><p>Tutte le verifiche del sistema <strong>VORTEX</strong> si sono concluse con successo.</p><table border=\"1\" cellpadding=\"6\" style=\"border-collapse: collapse;\"><tr style=\"background:#f8f9fa;\"><th>Servizio</th><th>Esito</th></tr><tr><td>PostgreSQL</td><td style=\"color:green;\">Attivo</td></tr><tr><td>Redis</td><td style=\"color:green;\">Attivo</td></tr></table></div>",
+    "priority": "normal"
+  }'</code></pre>
+                        </div>
+                      </div>
+
+                      <!-- Email Python -->
+                      <div class="tab-pane fade" id="mail-python">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-mail-py', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-mail-py">import requests
+
+url = "http://10.20.23.64:8090/api/v1/notifications/email"
+headers = {
+    "Content-Type": "application/json",
+    "X-API-Key": "ng_live_LA_TUA_CHIAVE_APPLICAZIONE"
+}
+payload = {
+    "to": ["utente@azienda.it", "supervisor@azienda.it"],
+    "subject": "Attivazione Account - Benvenuto",
+    "body_html": "&lt;h3&gt;Benvenuto!&lt;/h3&gt;&lt;p&gt;Il tuo account è stato abilitato con successo.&lt;/p&gt;",
+    "priority": "high"
+}
+
+res = requests.post(url, json=payload, headers=headers, timeout=10)
+print(res.json())</code></pre>
+                        </div>
+                      </div>
+
+                      <!-- Email Node -->
+                      <div class="tab-pane fade" id="mail-node">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-mail-node', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-mail-node">const res = await fetch('http://10.20.23.64:8090/api/v1/notifications/email', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'ng_live_LA_TUA_CHIAVE_APPLICAZIONE'
+  },
+  body: JSON.stringify({
+    to: ['direzione@azienda.it'],
+    subject: 'Report Mensile Prestazioni',
+    body_text: 'In allegato le statistiche mensili di utilizzo del gateway.',
+    priority: 'normal'
+  })
+});
+
+const data = await res.json();
+console.log('Dispatched Email ID:', data.data.notification_id);</code></pre>
+                        </div>
+                      </div>
+
+                      <!-- Email PHP -->
+                      <div class="tab-pane fade" id="mail-php">
+                        <div class="code-box-wrapper">
+                          <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-mail-php', this)">
+                            <i class="bi bi-clipboard me-1"></i> Copia
+                          </button>
+                          <pre><code id="code-mail-php">&lt;?php
+$payload = [
+    'to' => ['helpdesk@azienda.it'],
+    'subject' => 'Ticket #8842 Aperto',
+    'body_html' => '&lt;p&gt;Nuovo ticket di supporto aperto da un operatore.&lt;/p&gt;',
+    'priority' => 'normal'
+];
+
+$ch = curl_init('http://10.20.23.64:8090/api/v1/notifications/email');
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'X-API-Key: ng_live_LA_TUA_CHIAVE_APPLICAZIONE'
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$result = curl_exec($ch);
+curl_close($ch);
+echo $result;</code></pre>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ==================== TAB 4: MULTICANALE UNIFICATO ==================== -->
+                  <div class="tab-pane fade" id="tab-pane-unified" role="tabpanel">
+                    <h5 class="fw-bold mb-2"><i class="bi bi-layers-fill text-primary me-2"></i>4. Notifica Multicanale Unificata</h5>
+                    <p class="text-secondary">
+                      Invia contemporaneamente su <strong>Telegram</strong> ed <strong>Email</strong> con una singola chiamata REST. Ideale per incidenti critici, allarmi di sicurezza e comunicazioni ad alta priorità.
+                    </p>
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                      <span class="badge bg-primary px-3 py-2">POST</span>
+                      <code class="fs-6 font-monospace">/api/v1/notifications/send</code>
+                    </div>
+
+                    <div class="code-box-wrapper mb-3">
+                      <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-unified-curl', this)">
+                        <i class="bi bi-clipboard me-1"></i> Copia
+                      </button>
+                      <pre><code id="code-unified-curl">curl -X POST http://10.20.23.64:8090/api/v1/notifications/send \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: ng_live_LA_TUA_CHIAVE_APPLICAZIONE" \
+  -d '{
+    "channels": ["telegram", "email"],
+    "message": "⚠️ INCIDENTE DI SICUREZZA: Rilevati tentativi di accesso anomali.",
+    "subject": "CRITICO: Alert Sicurezza VORTEX",
+    "body_html": "&lt;h2 style=\"color:red;\"&gt;Alert Sicurezza&lt;/h2&gt;&lt;p&gt;Rilevati molteplici tentativi di accesso anomali.&lt;/p&gt;",
+    "telegram_chat_id": "8492736068",
+    "email_to": ["soc@azienda.it", "ciso@azienda.it"],
+    "priority": "urgent",
+    "idempotency_key": "sec-alert-449102"
+  }'</code></pre>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Risposta Unificata Multipla:</h6>
+                    <pre class="bg-body-secondary p-3 rounded-2 border"><code>{
+  "success": true,
+  "data": {
+    "dispatched_count": 2,
+    "channels": ["telegram", "email"],
+    "results": [
+      {
+        "channel": "telegram",
+        "notification_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+        "status": "delivered"
+      },
+      {
+        "channel": "email",
+        "notification_id": "3c847e2a-14d2-43bb-a801-b384ef7018c1",
+        "status": "sent"
+      }
+    ]
+  }
+}</code></pre>
+                  </div>
+
+                  <!-- ==================== TAB 5: TRACKING ==================== -->
+                  <div class="tab-pane fade" id="tab-pane-tracking" role="tabpanel">
+                    <h5 class="fw-bold mb-2"><i class="bi bi-search text-success me-2"></i>5. Tracciamento Stato & Ricevute di Consegna</h5>
+                    <p class="text-secondary">
+                      Interroga in tempo reale l'esito di qualsiasi notifica precedentemente inviata per verificare se è stata recapitata o se si sono verificati errori.
+                    </p>
+
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                      <span class="badge bg-success px-3 py-2">GET</span>
+                      <code class="fs-6 font-monospace">/api/v1/notifications/{notification_id}</code>
+                    </div>
+
+                    <div class="code-box-wrapper mb-4">
+                      <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-track-curl', this)">
+                        <i class="bi bi-clipboard me-1"></i> Copia
+                      </button>
+                      <pre><code id="code-track-curl"># Recupera lo stato di consegna di una notifica
+curl -X GET http://10.20.23.64:8090/api/v1/notifications/e4b31649-1662-4ef8-a15e-f00e979a4055 \
+  -H "X-API-Key: ng_live_LA_TUA_CHIAVE_APPLICAZIONE"</code></pre>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Ciclo di Vita & Stati Possibili della Notifica:</h6>
+                    <div class="table-responsive">
+                      <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Stato</th>
+                            <th>Significato</th>
+                            <th>Azione del Gateway</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><span class="badge bg-warning text-dark">pending</span></td>
+                            <td>Notifica registrata e in coda di dispatch.</td>
+                            <td>Presa in carico dal motore asincrono.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-info text-white">sent</span></td>
+                            <td>Accettata dal provider SMTP o Telegram.</td>
+                            <td>In transito verso il dispositivo destinatario.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-success">delivered</span></td>
+                            <td>Consegna confermata con successo.</td>
+                            <td>Stato finale positivo.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-warning-subtle text-warning border">retry</span></td>
+                            <td>Errore transiente riscontrato (es. rate-limit Telegram o timeout SMTP).</td>
+                            <td>VORTEX ritenta automaticamente con backoff esponenziale (fino a 3 tentativi).</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-danger">failed</span></td>
+                            <td>Invio non riuscito definitivamente (es. credenziali errate o chat ID inesistente).</td>
+                            <td>Il campo <code>error_message</code> riporta la causa dettagliata dell'errore.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <!-- ==================== TAB 6: INBOUND ==================== -->
+                  <div class="tab-pane fade" id="tab-pane-inbound" role="tabpanel">
+                    <h5 class="fw-bold mb-2"><i class="bi bi-inbox-fill text-purple me-2"></i>6. Ricezione Messaggi Inbound (Telegram & Email)</h5>
+                    <p class="text-secondary">
+                      VORTEX include un ricevitore bidirezionale per acquisire risposte, messaggi e webhook generati dagli utenti su Telegram o canali email.
+                    </p>
+
+                    <div class="row g-4 mb-4">
+                      <div class="col-md-6">
+                        <div class="card h-100 bg-body-tertiary border">
+                          <div class="card-body">
+                            <h6 class="fw-bold text-info"><i class="bi bi-telegram me-1"></i> Ricezione Automatica Telegram</h6>
+                            <p class="small text-muted mb-2">
+                              Grazie al motore di <strong>Polling Distribuito</strong> con Redis, qualsiasi messaggio inviato dagli utenti al tuo bot (es. <code>@IsedAlertPsn_bot</code>) viene catturato automaticamente da VORTEX ogni 3.5 secondi.
+                            </p>
+                            <span class="badge bg-success-subtle text-success">Zero configurazione server richiesta</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="card h-100 bg-body-tertiary border">
+                          <div class="card-body">
+                            <h6 class="fw-bold text-danger"><i class="bi bi-envelope-at me-1"></i> Ricezione Webhook Email</h6>
+                            <p class="small text-muted mb-2">
+                              Inoltra eventi email in ingresso (da relay Postfix, Sendgrid, Mailgun o Google Cloud Pub/Sub) direttamente all'endpoint standardizzato.
+                            </p>
+                            <span class="badge bg-primary-subtle text-primary">POST /api/v1/inbound/email</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Consultare i Messaggi Ricevuti via API:</h6>
+                    <div class="code-box-wrapper mb-3">
+                      <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-inbound-get', this)">
+                        <i class="bi bi-clipboard me-1"></i> Copia
+                      </button>
+                      <pre><code id="code-inbound-get"># Elenco messaggi in arrivo (filtro opzionale: telegram, email)
+curl -X GET "http://10.20.23.64:8090/api/v1/inbound/messages?provider=telegram&limit=20" \
+  -H "X-Admin-API-Key: LA_TUA_ADMIN_SECRET_KEY"</code></pre>
+                    </div>
+
+                    <h6 class="fw-bold mb-2">Invio Inbound Email via Webhook:</h6>
+                    <div class="code-box-wrapper mb-3">
+                      <button class="btn btn-sm btn-outline-secondary code-copy-btn" onclick="copyCodeSnippet('code-inbound-post', this)">
+                        <i class="bi bi-clipboard me-1"></i> Copia
+                      </button>
+                      <pre><code id="code-inbound-post">curl -X POST http://10.20.23.64:8090/api/v1/inbound/email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from_email": "cliente@esterno.it",
+    "from_name": "Mario Rossi",
+    "to_email": "supporto@azienda.it",
+    "subject": "Richiesta assistenza tecnica",
+    "body_text": "Buongiorno, ho riscontrato un problema durante la generazione del report."
+  }'</code></pre>
+                    </div>
+                  </div>
+
+                  <!-- ==================== TAB 7: ERRORI & IDEMPOTENZA ==================== -->
+                  <div class="tab-pane fade" id="tab-pane-errors" role="tabpanel">
+                    <h5 class="fw-bold mb-2"><i class="bi bi-shield-check text-secondary me-2"></i>7. Codici di Stato, Errori & Idempotenza</h5>
+                    <p class="text-secondary">
+                      Riferimento completo per la gestione delle risposte HTTP, delle eccezioni e delle buone pratiche di retry.
+                    </p>
+
+                    <h6 class="fw-bold mb-2">Tabella Codici di Stato HTTP:</h6>
+                    <div class="table-responsive mb-4">
+                      <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Codice</th>
+                            <th>Nome</th>
+                            <th>Descrizione e Azione Consigliata</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><span class="badge bg-success font-monospace">200 OK</span></td>
+                            <td>Successo</td>
+                            <td>Notifica recapitata o operazione completata regolarmente.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-info text-white font-monospace">202 Accepted</span></td>
+                            <td>Accettata in coda</td>
+                            <td>La notifica è stata presa in carico ed è in fase di dispatch asincrono.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-danger font-monospace">400 Bad Request</span></td>
+                            <td>Payload non valido</td>
+                            <td>Manca un campo obbligatorio (es. <code>message</code> o <code>to</code>) o formato JSON errato.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-danger font-monospace">401 Unauthorized</span></td>
+                            <td>Autenticazione Fallita</td>
+                            <td>Header <code>X-API-Key</code> mancante, scaduta o non valida.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-danger font-monospace">403 Forbidden</span></td>
+                            <td>Accesso Negato</td>
+                            <td>L'applicazione mittente non ha i permessi per il tenant o il canale richiesto.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-warning text-dark font-monospace">429 Too Many Requests</span></td>
+                            <td>Rate Limit Superato</td>
+                            <td>Superato il limite di richieste al minuto (default: 60 req/min). Rallentare l'invio.</td>
+                          </tr>
+                          <tr>
+                            <td><span class="badge bg-danger font-monospace">500 / 502 / 503</span></td>
+                            <td>Errore Server o Provider</td>
+                            <td>Malfunzionamento temporaneo (es. rete o provider esterno). Eseguire retry esponenziale.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div class="row g-4">
+                      <div class="col-md-6">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                          <h6 class="fw-bold text-primary"><i class="bi bi-arrow-repeat me-1"></i> Idempotenza con Redis</h6>
+                          <p class="small text-secondary mb-2">
+                            Aggiungendo il campo <code>idempotency_key</code> (es. UUID generato dal tuo client), VORTEX garantisce che anche se una richiesta viene ripetuta 10 volte (a causa di timeout di rete), la notifica verrà <strong>inviata una sola volta</strong> al destinatario.
+                          </p>
+                          <span class="badge bg-secondary">TTL Chiave: 24 ore su Redis</span>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="border rounded-3 p-3 bg-body-tertiary h-100">
+                          <h6 class="fw-bold text-primary"><i class="bi bi-shield-lock me-1"></i> Sicurezza delle Credenziali</h6>
+                          <p class="small text-secondary mb-2">
+                            Tutti i token Telegram e le password SMTP salvate in VORTEX sono protette con cifratura <strong>AES-256-GCM</strong>. Non transitano mai in chiaro nel database o nei log applicativi.
+                          </p>
+                          <span class="badge bg-success-subtle text-success">Conforme alle policy di sicurezza</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </section>
+
         </div>
       </div>
       <!-- /.app-content -->
@@ -597,7 +1421,7 @@
         <div class="d-flex flex-wrap align-items-center gap-3 ms-auto text-end footer-right">
           <span class="d-none d-md-inline">Versatile Omnichannel Routing &amp; Telegram-Email eXchange</span>
           <a href="#" class="text-decoration-none fw-semibold text-primary" onclick="openSystemInfoDialog(event)" title="Visualizza caratteristiche e specifiche di VORTEX" id="footer-version-tag">
-            <i class="bi bi-info-circle me-1"></i>Versione: <strong>v0.6.8</strong>
+            <i class="bi bi-info-circle me-1"></i>Versione: <strong>v0.6.9</strong>
           </a>
         </div>
       </div>
@@ -1035,7 +1859,7 @@
                 </tr>
                 <tr>
                   <th class="bg-body-tertiary">Versione Applicativa</th>
-                  <td class="font-monospace text-primary" id="modal-system-version">v0.6.8</td>
+                  <td class="font-monospace text-primary" id="modal-system-version">v0.6.9</td>
                 </tr>
                 <tr>
                   <th class="bg-body-tertiary">Framework Core</th>
@@ -1109,6 +1933,6 @@
   <script src="/static/vendor/js/bootstrap.bundle.min.js"></script>
   <script src="/static/vendor/js/adminlte.min.js"></script>
   <!-- Main Dashboard Logic -->
-  <script src="/static/js/dashboard.js?v=0.6.8"></script>
+  <script src="/static/js/dashboard.js?v=0.6.9"></script>
 </body>
 </html>

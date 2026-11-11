@@ -291,7 +291,8 @@ function openSection(sectionId) {
     telegram: 'Configurazioni Bot Telegram',
     gmail: 'Account Email (Gmail & SMTP)',
     inbound: 'Messaggi Ricevuti (Inbound Receiver)',
-    test: 'Invia Notifica di Prova Live'
+    test: 'Invia Notifica di Prova Live',
+    guide: 'Guida Completa Integrazione API - VORTEX'
   };
 
   const titleEl = document.getElementById('page-title');
@@ -334,7 +335,7 @@ async function loadHealth() {
 
     setSafe('health-db', data.components?.database || 'OK');
     setSafe('health-redis', data.components?.redis || 'OK');
-    const ver = data.version ? `v${data.version}` : 'v0.6.7';
+    const ver = data.version ? `v${data.version}` : 'v0.6.9';
     setSafe('health-version', ver);
     const footerVer = document.getElementById('footer-version-tag');
     if (footerVer) footerVer.innerHTML = `<i class="bi bi-info-circle me-1"></i>Versione: <strong>${ver}</strong>`;
@@ -569,6 +570,35 @@ function copyCreatedKey() {
       showToast('API Key copiata negli appunti!', 'success');
     });
   }
+}
+
+function copyCodeSnippet(targetId, btnEl) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const text = (el.innerText || el.textContent || '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Codice di esempio copiato negli appunti!', 'success');
+    if (btnEl) {
+      const original = btnEl.innerHTML;
+      btnEl.innerHTML = '<i class="bi bi-check2 text-success me-1"></i> Copiato!';
+      setTimeout(() => { btnEl.innerHTML = original; }, 2000);
+    }
+  }).catch(err => {
+    showToast('Impossibile copiare: ' + err, 'danger');
+  });
+}
+
+function copyRawText(text, btnEl) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copiato negli appunti!', 'success');
+    if (btnEl) {
+      const original = btnEl.innerHTML;
+      btnEl.innerHTML = '<i class="bi bi-check2 text-success me-1"></i> Copiato!';
+      setTimeout(() => { btnEl.innerHTML = original; }, 2000);
+    }
+  }).catch(err => {
+    showToast('Impossibile copiare: ' + err, 'danger');
+  });
 }
 
 /* ==============================================================================
