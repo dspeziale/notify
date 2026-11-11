@@ -58,7 +58,7 @@ async def create_gmail_config(
     dependencies=[Depends(require_admin_auth)],
 )
 async def list_gmail_configs(
-    application_id: uuid.UUID = Query(..., description="Filter by client application UUID"),
+    application_id: uuid.UUID | None = Query(None, description="Optional filter by client application UUID"),
     offset: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),

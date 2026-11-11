@@ -75,9 +75,9 @@ class TelegramConfigService:
         return config
 
     async def list_configs(
-        self, app_id: uuid.UUID, offset: int = 0, limit: int = 100
+        self, app_id: uuid.UUID | None = None, offset: int = 0, limit: int = 100
     ) -> Sequence[TelegramConfiguration]:
-        """Lists configurations for an application."""
+        """Lists configurations, optionally filtered by application."""
         return await self.repo.list_by_app(app_id, offset=offset, limit=limit)
 
     async def get_decrypted_token(self, config: TelegramConfiguration) -> str:

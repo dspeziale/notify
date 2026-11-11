@@ -106,9 +106,9 @@ class GmailConfigService:
         return config
 
     async def list_configs(
-        self, app_id: uuid.UUID, offset: int = 0, limit: int = 100
+        self, app_id: uuid.UUID | None = None, offset: int = 0, limit: int = 100
     ) -> Sequence[GmailConfiguration]:
-        """Lists configurations belonging to an application."""
+        """Lists configurations, optionally filtered by application."""
         return await self.repo.list_by_app(app_id, offset=offset, limit=limit)
 
     async def generate_oauth_url(self, config_id: uuid.UUID) -> tuple[str, str]:

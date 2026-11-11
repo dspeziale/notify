@@ -26,15 +26,13 @@ class TelegramConfigRepository(BaseRepository[TelegramConfiguration]):
         return result.scalar_one_or_none()
 
     async def list_by_app(
-        self, app_id: uuid.UUID, offset: int = 0, limit: int = 100
+        self, app_id: uuid.UUID | None = None, offset: int = 0, limit: int = 100
     ) -> Sequence[TelegramConfiguration]:
-        """Lists configurations belonging to a specific application."""
-        stmt = (
-            select(TelegramConfiguration)
-            .where(TelegramConfiguration.application_id == app_id)
-            .offset(offset)
-            .limit(limit)
-        )
+        """Lists configurations, optionally filtered by application."""
+        stmt = select(TelegramConfiguration)
+        if app_id:
+            stmt = stmt.where(TelegramConfiguration.application_id == app_id)
+        stmt = stmt.offset(offset).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 

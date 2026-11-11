@@ -200,12 +200,17 @@ async function loadHealth() {
     const data = await res.json();
     state.health = data;
     
-    document.getElementById('healthStatusText').textContent = data.status.toUpperCase();
-    document.getElementById('healthUptimeText').textContent = formatSeconds(data.uptime_seconds);
-    document.getElementById('healthEnvText').textContent = data.environment;
-    document.getElementById('healthDbText').textContent = data.components?.database || 'N/A';
-    document.getElementById('healthRedisText').textContent = data.components?.redis || 'N/A';
-    document.getElementById('healthCryptoText').textContent = data.components?.encryption || 'N/A';
+    const setSafe = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+
+    setSafe('healthStatusText', data.status ? data.status.toUpperCase() : 'UNKNOWN');
+    setSafe('healthUptimeText', formatSeconds(data.uptime_seconds));
+    setSafe('healthEnvText', data.environment || '-');
+    setSafe('healthDbText', data.components?.database || 'N/A');
+    setSafe('healthRedisText', data.components?.redis || 'N/A');
+    setSafe('healthCryptoText', data.components?.encryption || 'N/A');
   } catch (err) {
     console.error('Failed to load health:', err);
   }

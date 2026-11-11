@@ -26,15 +26,13 @@ class GmailConfigRepository(BaseRepository[GmailConfiguration]):
         return result.scalar_one_or_none()
 
     async def list_by_app(
-        self, app_id: uuid.UUID, offset: int = 0, limit: int = 100
+        self, app_id: uuid.UUID | None = None, offset: int = 0, limit: int = 100
     ) -> Sequence[GmailConfiguration]:
-        """Lists configurations belonging to a specific application."""
-        stmt = (
-            select(GmailConfiguration)
-            .where(GmailConfiguration.application_id == app_id)
-            .offset(offset)
-            .limit(limit)
-        )
+        """Lists configurations, optionally filtered by application."""
+        stmt = select(GmailConfiguration)
+        if app_id:
+            stmt = stmt.where(GmailConfiguration.application_id == app_id)
+        stmt = stmt.offset(offset).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
