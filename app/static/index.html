@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notification Gateway - Management Console</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">NG</div>
+        <div class="brand-text">
+          <h1>Notify Gateway</h1>
+          <span>Admin Console</span>
+        </div>
+      </div>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-menu">
+          <li>
+            <a class="nav-link active" data-tab="overview">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              <span>Panoramica</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-tab="applications">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              <span>Applicazioni & Key</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-tab="telegram">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              <span>Bot Telegram</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-tab="gmail">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span>Gmail & SMTP</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-tab="dispatcher">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Sandbox Invio Live</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-tab="notifications">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+              <span>Storico Notifiche</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-link" data-tab="audit">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <span>Audit Log</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div>Gateway v1.0.0 (Production)</div>
+        <a href="/docs" target="_blank" style="color: var(--primary); text-decoration: none;">Documentazione Swagger ↗</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2 id="topbarTitle" class="topbar-title">Panoramica & Stato Gateway</h2>
+        </div>
+        <div class="topbar-right">
+          <div class="auth-key-pill" title="Inserisci qui la tua Admin API Key per autenticare le chiamate">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            <input type="password" id="adminKeyInput" placeholder="Admin API Key..." autocomplete="off">
+          </div>
+          <span id="authStatusBadge" class="health-badge"><span class="health-dot"></span> Online</span>
+        </div>
+      </header>
+
+      <!-- Main Tab Panels -->
+      <main class="content-area">
+
+        <!-- TAB 1: OVERVIEW -->
+        <section id="tab-overview" class="tab-panel active">
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span>Applicazioni Client</span>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              </div>
+              <div id="statTotalApps" class="stat-value">-</div>
+              <div id="statActiveApps" class="stat-sub">- attive</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span>Bot Telegram</span>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              </div>
+              <div id="statTelegramConfigs" class="stat-value">-</div>
+              <div class="stat-sub">Integrazioni configurate</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span>Gmail / SMTP</span>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              </div>
+              <div id="statGmailConfigs" class="stat-value">-</div>
+              <div class="stat-sub">Integrazioni configurate</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span>Notifiche Totali</span>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <div id="statTotalNotifs" class="stat-value">-</div>
+              <div id="statSuccessRate" class="stat-sub">100% successo</div>
+            </div>
+          </div>
+
+          <!-- Gateway Health Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Stato Componenti di Sistema</h2>
+                <p>Verifica in tempo reale della connettività database, redis e motore di cifratura AES-256</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="loadHealth(); loadStats();">Aggiorna Stato</button>
+            </div>
+            <div class="stats-grid">
+              <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="color: var(--text-secondary); font-size: 0.8rem;">Database PostgreSQL</div>
+                <div id="healthDbText" style="font-weight: 700; color: var(--success); font-size: 1.1rem;">connected</div>
+              </div>
+              <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="color: var(--text-secondary); font-size: 0.8rem;">Cache & Rate Limiter Redis</div>
+                <div id="healthRedisText" style="font-weight: 700; color: var(--success); font-size: 1.1rem;">connected</div>
+              </div>
+              <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="color: var(--text-secondary); font-size: 0.8rem;">Cifratura AES-256-GCM</div>
+                <div id="healthCryptoText" style="font-weight: 700; color: var(--success); font-size: 1.1rem;">operational</div>
+              </div>
+              <div style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md);">
+                <div style="color: var(--text-secondary); font-size: 0.8rem;">Uptime Gateway</div>
+                <div id="healthUptimeText" style="font-weight: 700; font-size: 1.1rem;">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Notifications Feed -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Ultime Notifiche Inviate</h2>
+                <p>Attività recente registrata attraverso tutti i provider supportati</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="switchTab('notifications')">Vedi Tutte →</button>
+            </div>
+            <div tabindex="0" role="region" aria-labelledby="recent-notifs-caption" class="table-wrapper">
+              <table>
+                <caption id="recent-notifs-caption" class="sr-only">Notifiche Recenti</caption>
+                <thead>
+                  <tr>
+                    <th>ID Notifica</th>
+                    <th>Provider</th>
+                    <th>Destinatario / Config</th>
+                    <th>Stato</th>
+                    <th>Tentativi</th>
+                    <th>Data Invio</th>
+                  </tr>
+                </thead>
+                <tbody id="recentNotificationsTbody">
+                  <tr><td colspan="6" class="empty-state">Caricamento in corso...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: APPLICATIONS -->
+        <section id="tab-applications" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Gestione Applicazioni Client</h2>
+                <p>Crea applicazioni, imposta rate limit e genera API Key crittografiche sicure</p>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="document.getElementById('createAppDialog').showModal()">
+                + Nuova Applicazione
+              </button>
+            </div>
+            <div tabindex="0" role="region" aria-labelledby="apps-table-caption" class="table-wrapper">
+              <table>
+                <caption id="apps-table-caption" class="sr-only">Elenco Applicazioni Client</caption>
+                <thead>
+                  <tr>
+                    <th>Applicazione</th>
+                    <th>ID Univoco</th>
+                    <th>Stato</th>
+                    <th>Permessi</th>
+                    <th>Rate Limit</th>
+                    <th>Data Creazione</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="applicationsTbody">
+                  <tr><td colspan="7" class="empty-state">Caricamento in corso...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: TELEGRAM CONFIGS -->
+        <section id="tab-telegram" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Configurazioni Bot Telegram</h2>
+                <p>I token sono salvati nel database con cifratura AES-256-GCM e non vengono mai mostrati in chiaro</p>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="document.getElementById('createTgDialog').showModal()">
+                + Aggiungi Bot Telegram
+              </button>
+            </div>
+            <div tabindex="0" role="region" aria-labelledby="tg-table-caption" class="table-wrapper">
+              <table>
+                <caption id="tg-table-caption" class="sr-only">Elenco Configurazioni Telegram</caption>
+                <thead>
+                  <tr>
+                    <th>Nome Config</th>
+                    <th>Applicazione</th>
+                    <th>Chat ID Default</th>
+                    <th>Stato</th>
+                    <th>Data Creazione</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="telegramTbody">
+                  <tr><td colspan="6" class="empty-state">Caricamento in corso...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: GMAIL / SMTP CONFIGS -->
+        <section id="tab-gmail" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Configurazioni Gmail & SMTP</h2>
+                <p>Supporta sia password per le applicazioni Google (App Passwords) che protocollo OAuth 2.0</p>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="document.getElementById('createGmailDialog').showModal()">
+                + Nuova Configurazione Email
+              </button>
+            </div>
+            <div tabindex="0" role="region" aria-labelledby="gmail-table-caption" class="table-wrapper">
+              <table>
+                <caption id="gmail-table-caption" class="sr-only">Elenco Configurazioni Email</caption>
+                <thead>
+                  <tr>
+                    <th>Nome Config</th>
+                    <th>Applicazione</th>
+                    <th>Tipo Autenticazione</th>
+                    <th>Account / Username</th>
+                    <th>Server SMTP</th>
+                    <th>Stato</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="gmailTbody">
+                  <tr><td colspan="7" class="empty-state">Caricamento in corso...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: DISPATCHER SANDBOX -->
+        <section id="tab-dispatcher" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Sandbox di Test Notifiche</h2>
+                <p>Invia notifiche di test in tempo reale e visualizza latenza e risposta grezza del provider</p>
+              </div>
+            </div>
+            <div class="sandbox-grid">
+              <form id="sandboxForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="sandboxProvider">Canale / Provider</label>
+                    <select id="sandboxProvider" class="form-control">
+                      <option value="telegram">Telegram Bot</option>
+                      <option value="email">Gmail / Email (SMTP)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="sandboxConfig">Configurazione</label>
+                    <select id="sandboxConfig" class="form-control"></select>
+                  </div>
+                </div>
+
+                <!-- Telegram Specific Fields -->
+                <div id="sandboxTelegramFields">
+                  <div class="form-group">
+                    <label for="sbTgChatId">Chat ID Destinatario</label>
+                    <input type="text" id="sbTgChatId" class="form-control" placeholder="Es: 8492736068 (lascia vuoto per default)">
+                  </div>
+                  <div class="form-group" style="margin-top: 0.75rem;">
+                    <label for="sbTgMessage">Messaggio (HTML / Markdown)</label>
+                    <textarea id="sbTgMessage" class="form-control" rows="4"><b>Notifica Sandbox</b> dal Gateway!
+Stato: Sistema Operativo
+Data: Invio di prova</textarea>
+                  </div>
+                </div>
+
+                <!-- Email Specific Fields -->
+                <div id="sandboxEmailFields" style="display: none;">
+                  <div class="form-group">
+                    <label for="sbEmailTo">Destinatario (Email)</label>
+                    <input type="email" id="sbEmailTo" class="form-control" placeholder="destinatario@example.com">
+                  </div>
+                  <div class="form-group" style="margin-top: 0.75rem;">
+                    <label for="sbEmailSubject">Oggetto Email</label>
+                    <input type="text" id="sbEmailSubject" class="form-control" value="Notifica di Test da Sandbox Gateway">
+                  </div>
+                  <div class="form-group" style="margin-top: 0.75rem;">
+                    <label for="sbEmailBody">Corpo Email (HTML)</label>
+                    <textarea id="sbEmailBody" class="form-control" rows="4"><h1>Test Notifica Email</h1><p>Invio immediato effettuato dalla Sandbox del Notification Gateway.</p></textarea>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">
+                  🚀 Esegui Notifica Live
+                </button>
+              </form>
+
+              <!-- Live Response Inspector -->
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Risultato Consegna / Payload</label>
+                <div id="sandboxResultBox" class="payload-preview" style="height: 100%;">// Invia una notifica per visualizzare il report di esecuzione...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 6: NOTIFICATIONS HISTORY -->
+        <section id="tab-notifications" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Storico Completo Notifiche</h2>
+                <p>Tracking dettagliato, tentativi di retry ed errori sanitizzati</p>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <select id="filterNotifProvider" class="form-control" style="width: 140px;" onchange="loadAllNotifications()">
+                  <option value="">Tutti i Canali</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="email">Email</option>
+                </select>
+                <select id="filterNotifStatus" class="form-control" style="width: 140px;" onchange="loadAllNotifications()">
+                  <option value="">Tutti gli Stati</option>
+                  <option value="sent">Sent (Consegnate)</option>
+                  <option value="failed">Failed (Fallite)</option>
+                  <option value="pending">Pending</option>
+                </select>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="loadAllNotifications()">Filtra</button>
+              </div>
+            </div>
+            <div tabindex="0" role="region" aria-labelledby="history-table-caption" class="table-wrapper">
+              <table>
+                <caption id="history-table-caption" class="sr-only">Storico Notifiche</caption>
+                <thead>
+                  <tr>
+                    <th>ID Notifica</th>
+                    <th>Canale</th>
+                    <th>Destinatario</th>
+                    <th>Stato</th>
+                    <th>Tentativi</th>
+                    <th>Data Creazione</th>
+                    <th>Dettagli</th>
+                  </tr>
+                </thead>
+                <tbody id="notificationsTbody">
+                  <tr><td colspan="7" class="empty-state">Caricamento in corso...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 7: AUDIT LOGS -->
+        <section id="tab-audit" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2>Audit Log Amministrativo</h2>
+                <p>Tracciamento a norma di sicurezza delle operazioni di configurazione ed emissione chiavi</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="loadAuditLogs()">Aggiorna</button>
+            </div>
+            <div tabindex="0" role="region" aria-labelledby="audit-table-caption" class="table-wrapper">
+              <table>
+                <caption id="audit-table-caption" class="sr-only">Audit Log</caption>
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Azione</th>
+                    <th>Autore</th>
+                    <th>Risorsa</th>
+                    <th>Esito</th>
+                    <th>Dettagli</th>
+                  </tr>
+                </thead>
+                <tbody id="auditTbody">
+                  <tr><td colspan="6" class="empty-state">Caricamento in corso...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       MODAL DIALOGS (modern-web-guidance compliant)
+       ============================================================================== -->
+
+  <!-- Modal: Create Application -->
+  <dialog id="createAppDialog" closedby="any" aria-labelledby="createAppTitle">
+    <div class="modal-header">
+      <h2 id="createAppTitle">Crea Nuova Applicazione Client</h2>
+      <button type="button" class="btn-icon" data-dialog-close>✕</button>
+    </div>
+    <form id="createAppForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="appName">Nome Applicazione *</label>
+          <input type="text" id="appName" class="form-control" required placeholder="Es: Portale Fatturazione" autofocus>
+        </div>
+        <div class="form-group">
+          <label for="appDesc">Descrizione</label>
+          <input type="text" id="appDesc" class="form-control" placeholder="Scopo dell'applicazione">
+        </div>
+        <div class="form-group">
+          <label for="appRateLimit">Rate Limit (Richieste / Minuto)</label>
+          <input type="number" id="appRateLimit" class="form-control" value="60" min="1" max="10000">
+        </div>
+        <div class="form-group">
+          <label>Permessi Concessi</label>
+          <div style="display: flex; gap: 1.5rem; margin-top: 0.35rem;">
+            <label class="checkbox-group">
+              <input type="checkbox" id="permTelegram" checked>
+              <span>Invio Notifiche Telegram (telegram:send)</span>
+            </label>
+            <label class="checkbox-group">
+              <input type="checkbox" id="permGmail" checked>
+              <span>Invio Email (gmail:send)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dialog-close>Annulla</button>
+        <button type="submit" class="btn btn-primary">Crea Applicazione</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: API Key Reveal (One-time) -->
+  <dialog id="keyRevealDialog" closedby="any" aria-labelledby="keyRevealTitle">
+    <div class="modal-header">
+      <h2 id="keyRevealTitle">API Key Generata con Successo</h2>
+      <button type="button" class="btn-icon" data-dialog-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="reveal-box">
+        <div style="font-weight: 700; color: var(--warning);">⚠️ ATTENZIONE: Questa chiave viene mostrata SOLO ADESSO.</div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+          Copiala e salvala in un posto sicuro. Nel database viene conservato esclusivamente l'hash HMAC-SHA256 con pepper segreto.
+        </div>
+        <div class="reveal-key-row">
+          <span id="revealKeyDisplay">-</span>
+          <button type="button" class="btn btn-primary btn-sm" onclick="copyToClipboard(document.getElementById('revealKeyDisplay').textContent)">Copia</button>
+        </div>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        Applicazione: <strong id="revealAppName" style="color: var(--text-primary);">-</strong>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" data-dialog-close>Ho salvato la chiave</button>
+    </div>
+  </dialog>
+
+  <!-- Modal: Create Telegram Config -->
+  <dialog id="createTgDialog" closedby="any" aria-labelledby="createTgTitle">
+    <div class="modal-header">
+      <h2 id="createTgTitle">Aggiungi Bot Telegram</h2>
+      <button type="button" class="btn-icon" data-dialog-close>✕</button>
+    </div>
+    <form id="createTgForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="tgAppId">Associa ad Applicazione *</label>
+          <select id="tgAppId" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label for="tgName">Nome Configurazione *</label>
+          <input type="text" id="tgName" class="form-control" required placeholder="Es: Bot Notifiche IT">
+        </div>
+        <div class="form-group">
+          <label for="tgToken">Bot Token Telegram * (AES-256 Encrypted)</label>
+          <input type="password" id="tgToken" class="form-control" required placeholder="123456789:ABCdefGhIjkLmNoPqRsTuVwXyZ" autocomplete="off">
+          <div class="form-helper">Ottenuto da @BotFather su Telegram</div>
+        </div>
+        <div class="form-group">
+          <label for="tgChatId">Default Chat ID (Opzionale)</label>
+          <input type="text" id="tgChatId" class="form-control" placeholder="Es: 8492736068">
+          <div class="form-helper">Se specificato, verrà usato se il client non indica un chat_id specifico</div>
+        </div>
+        <label class="checkbox-group">
+          <input type="checkbox" id="tgActive" checked>
+          <span>Attiva immediatamente la configurazione</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dialog-close>Annulla</button>
+        <button type="submit" class="btn btn-primary">Salva Bot Telegram</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Test Telegram -->
+  <dialog id="testTelegramDialog" closedby="any" aria-labelledby="testTgTitle">
+    <div class="modal-header">
+      <h2 id="testTgTitle">Invia Messaggio Test Telegram</h2>
+      <button type="button" class="btn-icon" data-dialog-close>✕</button>
+    </div>
+    <form id="testTgForm">
+      <input type="hidden" id="testTgConfigId">
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">
+          Configurazione in test: <strong id="testTgConfigName" style="color: var(--primary);">-</strong>
+        </p>
+        <div class="form-group">
+          <label for="testTgChatId">Chat ID Destinatario *</label>
+          <input type="text" id="testTgChatId" class="form-control" required placeholder="Es: 8492736068">
+        </div>
+        <div class="form-group">
+          <label for="testTgMessage">Messaggio HTML *</label>
+          <textarea id="testTgMessage" class="form-control" rows="3" required></textarea>
+        </div>
+        <div id="testTgResult" class="payload-preview" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dialog-close>Chiudi</button>
+        <button type="submit" class="btn btn-primary">Invia Messaggio Test</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Create Gmail / SMTP Config -->
+  <dialog id="createGmailDialog" closedby="any" aria-labelledby="createGmailTitle">
+    <div class="modal-header">
+      <h2 id="createGmailTitle">Configura Account Gmail / SMTP</h2>
+      <button type="button" class="btn-icon" data-dialog-close>✕</button>
+    </div>
+    <form id="createGmailForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="gmailAppId">Associa ad Applicazione *</label>
+          <select id="gmailAppId" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label for="gmailName">Nome Configurazione *</label>
+          <input type="text" id="gmailName" class="form-control" required placeholder="Es: Gmail Notifiche Aziendali">
+        </div>
+        <div class="form-group">
+          <label for="gmailAuthType">Metodo di Autenticazione</label>
+          <select id="gmailAuthType" class="form-control" onchange="
+            const isSmtp = this.value === 'app_password';
+            document.getElementById('smtpSection').style.display = isSmtp ? 'block' : 'none';
+            document.getElementById('oauthSection').style.display = isSmtp ? 'none' : 'block';
+          ">
+            <option value="app_password">Google Password per le Applicazioni / SMTP (Consigliato)</option>
+            <option value="oauth2">Google OAuth 2.0 (Authorization Code Flow)</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gmailFromEmail">Indirizzo Mittente (From) *</label>
+            <input type="email" id="gmailFromEmail" class="form-control" required placeholder="es: info@azienda.it">
+          </div>
+          <div class="form-group">
+            <label for="gmailFromName">Nome Mittente Visualizzato</label>
+            <input type="text" id="gmailFromName" class="form-control" placeholder="Es: Notification Center">
+          </div>
+        </div>
+
+        <!-- Section: App Password SMTP -->
+        <div id="smtpSection">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="smtpHost">Host SMTP</label>
+              <input type="text" id="smtpHost" class="form-control" value="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+              <label for="smtpPort">Porta SMTP</label>
+              <input type="number" id="smtpPort" class="form-control" value="587">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 0.75rem;">
+            <label for="smtpUser">Username / Account Google *</label>
+            <input type="text" id="smtpUser" class="form-control" placeholder="es: account@gmail.com">
+          </div>
+          <div class="form-group" style="margin-top: 0.75rem;">
+            <label for="smtpPass">Password per le Applicazioni (16 caratteri) *</label>
+            <input type="password" id="smtpPass" class="form-control" placeholder="abcd efgh ijkl mnop" autocomplete="off">
+            <div class="form-helper">Generata in Google Account → Sicurezza → Verifica in 2 passaggi → Password per le app</div>
+          </div>
+          <label class="checkbox-group" style="margin-top: 0.5rem;">
+            <input type="checkbox" id="smtpTls" checked>
+            <span>Usa STARTTLS (Porta 587)</span>
+          </label>
+        </div>
+
+        <!-- Section: OAuth2 -->
+        <div id="oauthSection" style="display: none;">
+          <div class="form-group">
+            <label for="oauthClientId">Client ID Google</label>
+            <input type="text" id="oauthClientId" class="form-control" placeholder="xxx.apps.googleusercontent.com">
+          </div>
+          <div class="form-group" style="margin-top: 0.75rem;">
+            <label for="oauthClientSecret">Client Secret</label>
+            <input type="password" id="oauthClientSecret" class="form-control" autocomplete="off">
+          </div>
+        </div>
+
+        <label class="checkbox-group" style="margin-top: 0.75rem;">
+          <input type="checkbox" id="gmailActive" checked>
+          <span>Attiva configurazione</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dialog-close>Annulla</button>
+        <button type="submit" class="btn btn-primary">Salva Configurazione Email</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Test Gmail / SMTP -->
+  <dialog id="testGmailDialog" closedby="any" aria-labelledby="testGmailTitle">
+    <div class="modal-header">
+      <h2 id="testGmailTitle">Invia Email di Test</h2>
+      <button type="button" class="btn-icon" data-dialog-close>✕</button>
+    </div>
+    <form id="testGmailForm">
+      <input type="hidden" id="testGmailConfigId">
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">
+          Configurazione in test: <strong id="testGmailConfigName" style="color: var(--primary);">-</strong>
+        </p>
+        <div class="form-group">
+          <label for="testGmailRecipient">Destinatario (Email) *</label>
+          <input type="email" id="testGmailRecipient" class="form-control" required placeholder="tuoindirizzo@gmail.com">
+        </div>
+        <div class="form-group">
+          <label for="testGmailSubject">Oggetto *</label>
+          <input type="text" id="testGmailSubject" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="testGmailBody">Corpo Email HTML *</label>
+          <textarea id="testGmailBody" class="form-control" rows="3" required></textarea>
+        </div>
+        <div id="testGmailResult" class="payload-preview" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dialog-close>Chiudi</button>
+        <button type="submit" class="btn btn-primary">Invia Email Test</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Inspect Notification Attempts -->
+  <dialog id="notifDetailDialog" closedby="any" aria-labelledby="notifDetailTitle">
+    <div class="modal-header">
+      <h2 id="notifDetailTitle">Dettagli Notifica & Tentativi</h2>
+      <button type="button" class="btn-icon" data-dialog-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">ID NOTIFICA</div>
+          <div id="notifDetailId" class="mono" style="font-size: 0.8rem; word-break: break-all;">-</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">STATO</div>
+          <div id="notifDetailStatus">-</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">CANALE</div>
+          <div id="notifDetailProvider" style="font-weight: 600;">-</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">DATA CREAZIONE</div>
+          <div id="notifDetailCreated" style="font-size: 0.85rem;">-</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 0.5rem;">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">DESTINATARIO / SUMMARY</div>
+        <div id="notifDetailSummary" style="font-size: 0.85rem; font-weight: 600;">-</div>
+      </div>
+
+      <div style="margin-top: 0.5rem;">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">MESSAGGIO ERRORE (SANITIZZATO)</div>
+        <div id="notifDetailError" class="mono" style="font-size: 0.8rem; color: var(--danger);">-</div>
+      </div>
+
+      <div style="margin-top: 1rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Tracciamento Singoli Tentativi di Consegna (Retry Trace)</h3>
+        <div tabindex="0" role="region" aria-labelledby="attempts-table-caption" class="table-wrapper">
+          <table>
+            <caption id="attempts-table-caption" class="sr-only">Tentativi di Consegna</caption>
+            <thead>
+              <tr>
+                <th>Tentativo</th>
+                <th>Esito</th>
+                <th>HTTP Status</th>
+                <th>Latenza</th>
+                <th>Messaggio</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="notifAttemptsTbody">
+              <tr><td colspan="6" class="empty-state">Nessun tentativo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dialog-close>Chiudi</button>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

@@ -61,6 +61,40 @@ class NotificationRepository(BaseRepository[Notification]):
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
+    async def list_all(
+        self,
+        app_id: uuid.UUID | None = None,
+        provider: str | None = None,
+        status: str | None = None,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> Sequence[Notification]:
+        """Lists all notifications across applications with optional filters."""
+        stmt = (
+            select(Notification)
+            .options(selectinload(Notification.attempts))
+            .order_by(Notification.created_at.desc())
+        )
+        if app_id:
+            stmt = stmt.where(Notification.application_id == app_id)
+        if provider:
+            stmt = stmt.where(Notification.provider == provider)
+        if status:
+            stmt = stmt.where(Notification.status == status)
+        stmt = stmt.offset(offset).limit(limit)
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
+    async def get_by_id_admin(self, notification_id: uuid.UUID) -> Notification | None:
+        """Finds notification by ID without application scoping (admin view)."""
+        stmt = (
+            select(Notification)
+            .options(selectinload(Notification.attempts))
+            .where(Notification.id == notification_id)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def add_attempt(
         self,
         notification_id: uuid.UUID,

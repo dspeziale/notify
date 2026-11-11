@@ -117,3 +117,27 @@ app.include_router(root_metrics_router)
 # Versioned API routes
 app.include_router(api_v1_router, prefix=settings.API_V1_PREFIX)
 
+# Static Files & Dashboard Web UI
+from pathlib import Path
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
+@app.get("/dashboard", include_in_schema=False)
+async def dashboard_page():
+    """Serves the administrative Web Dashboard."""
+    index_file = static_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    return JSONResponse(status_code=404, content={"message": "Dashboard UI not found"})
+
+
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    """Redirects root URL directly to the dashboard."""
+    return RedirectResponse(url="/dashboard")
+

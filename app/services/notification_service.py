@@ -253,3 +253,29 @@ class NotificationService:
     ) -> list[Notification]:
         """Lists notifications for an application in descending order."""
         return list(await self.notification_repo.list_by_app(app_id, offset=offset, limit=limit))
+
+    async def list_all_notifications(
+        self,
+        app_id: uuid.UUID | None = None,
+        provider: str | None = None,
+        status: str | None = None,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> list[Notification]:
+        """Lists all notifications across applications (admin view)."""
+        return list(
+            await self.notification_repo.list_all(
+                app_id=app_id,
+                provider=provider,
+                status=status,
+                offset=offset,
+                limit=limit,
+            )
+        )
+
+    async def get_notification_admin(self, notification_id: uuid.UUID) -> Notification:
+        """Retrieves a notification by ID without tenant restriction (admin view)."""
+        notification = await self.notification_repo.get_by_id_admin(notification_id)
+        if not notification:
+            raise NotFoundException(f"Notification {notification_id} not found")
+        return notification
