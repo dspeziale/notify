@@ -94,3 +94,4 @@ async def list_inbound_messages(
     messages = res.scalars().all()
 
     return APIResponse(data=[InboundMessageResponse.model_validate(m) for m in messages])
+

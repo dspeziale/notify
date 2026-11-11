@@ -45,3 +45,4 @@ class InboundMessage(Base, UUIDMixin):
     __table_args__ = (
         Index("ix_inbound_provider_created", "provider", "created_at"),
     )
+

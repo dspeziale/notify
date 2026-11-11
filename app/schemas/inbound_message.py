@@ -38,3 +38,4 @@ class EmailInboundPayload(BaseModel):
     subject: str | None = None
     body_text: str | None = None
     raw_payload: str | None = None
+

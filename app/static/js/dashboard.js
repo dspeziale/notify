@@ -327,7 +327,11 @@ async function loadHealth() {
 
     setSafe('health-db', data.components?.database || 'OK');
     setSafe('health-redis', data.components?.redis || 'OK');
-    setSafe('health-version', data.version ? `v${data.version}` : 'v1.0.0');
+    const ver = data.version ? `v${data.version}` : 'v0.6.3';
+    setSafe('health-version', ver);
+    const footerVer = document.getElementById('footer-version-tag');
+    if (footerVer) footerVer.innerHTML = `<i class="bi bi-info-circle me-1"></i>Versione: <strong>${ver}</strong>`;
+    setSafe('modal-system-version', ver);
 
     const badge = document.getElementById('system-status-badge');
     if (badge) {
