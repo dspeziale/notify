@@ -1,39 +1,149 @@
 /**
- * Notification Gateway - Enterprise Administration Dashboard Client
- * Pure modern ES6+ vanilla implementation, no external dependencies.
+ * Notification Gateway - Enterprise Admin Dashboard Client
+ * AdminLTE 4.0 & Bootstrap 5.3 + Font Scaling & Light/Dark Theme Engine
  */
 
 // Global State
 const state = {
   adminKey: sessionStorage.getItem('ng_admin_key') || localStorage.getItem('ng_admin_key') || '',
-  activeTab: 'overview',
+  activeSection: 'overview',
   stats: null,
   health: null,
   applications: [],
   telegramConfigs: [],
   gmailConfigs: [],
-  notifications: [],
-  auditLogs: [],
+  smtpConfigs: []
 };
 
-// DOM Content Loaded
+// DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
+  initThemeAndFontControls();
   initKeyManagement();
-  initNavigation();
+  initSidebarNavigation();
   initDialogFallbacks();
-  initFormHandlers();
   
   // Initial data load
   refreshAllData();
 
-  // Auto-refresh stats every 30 seconds
+  // Periodic health check
   setInterval(() => {
-    if (state.activeTab === 'overview') {
+    loadHealth();
+    if (state.activeSection === 'overview') {
       loadStats();
-      loadHealth();
     }
   }, 30000);
 });
+
+/* ==============================================================================
+   THEME (Light / Dark / Auto) & FONT SIZE SCALING
+   ============================================================================== */
+
+function initThemeAndFontControls() {
+  // 1. Theme Management
+  const storedTheme = localStorage.getItem('ng_theme') || 'dark';
+  applyTheme(storedTheme);
+
+  document.querySelectorAll('[data-bs-theme-value]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const theme = btn.getAttribute('data-bs-theme-value');
+      applyTheme(theme);
+    });
+  });
+
+  // Listen for system theme changes if set to auto
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    const currentStored = localStorage.getItem('ng_theme');
+    if (currentStored === 'auto') {
+      applyTheme('auto');
+    }
+  });
+
+  // 2. Font Size Scaling Management
+  const storedFontSize = localStorage.getItem('ng_font_size') || 'font-size-md';
+  applyFontSize(storedFontSize);
+
+  document.querySelectorAll('[data-font-size]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const sizeClass = btn.getAttribute('data-font-size');
+      applyFontSize(sizeClass);
+    });
+  });
+}
+
+function applyTheme(theme) {
+  localStorage.setItem('ng_theme', theme);
+  const htmlEl = document.documentElement;
+  
+  let effectiveTheme = theme;
+  if (theme === 'auto') {
+    effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  htmlEl.setAttribute('data-bs-theme', effectiveTheme);
+
+  // Update theme dropdown UI
+  const themeIcon = document.getElementById('theme-active-icon');
+  const themeText = document.getElementById('theme-active-text');
+  
+  if (themeIcon) {
+    themeIcon.className = theme === 'light' ? 'bi bi-sun-fill fs-5' :
+                          theme === 'dark' ? 'bi bi-moon-stars-fill fs-5' :
+                          'bi bi-circle-half fs-5';
+  }
+  if (themeText) {
+    themeText.textContent = theme === 'light' ? 'Chiaro' :
+                            theme === 'dark' ? 'Scuro' : 'Auto';
+  }
+
+  document.querySelectorAll('[data-bs-theme-value]').forEach(btn => {
+    const val = btn.getAttribute('data-bs-theme-value');
+    const check = btn.querySelector('.theme-check');
+    if (val === theme) {
+      btn.classList.add('active');
+      if (check) check.classList.remove('d-none');
+    } else {
+      btn.classList.remove('active');
+      if (check) check.classList.add('d-none');
+    }
+  });
+}
+
+function applyFontSize(sizeClass) {
+  const allowedClasses = ['font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-xl'];
+  if (!allowedClasses.includes(sizeClass)) {
+    sizeClass = 'font-size-md';
+  }
+
+  localStorage.setItem('ng_font_size', sizeClass);
+  const body = document.body;
+
+  allowedClasses.forEach(cls => body.classList.remove(cls));
+  body.classList.add(sizeClass);
+
+  const labels = {
+    'font-size-sm': 'Compatto',
+    'font-size-md': 'Normale',
+    'font-size-lg': 'Grande',
+    'font-size-xl': 'Molto Grande'
+  };
+
+  const labelEl = document.getElementById('current-font-size-label');
+  if (labelEl) labelEl.textContent = labels[sizeClass] || 'Normale';
+
+  document.querySelectorAll('[data-font-size]').forEach(btn => {
+    const cls = btn.getAttribute('data-font-size');
+    const check = btn.querySelector('.font-check');
+    if (cls === sizeClass) {
+      btn.classList.add('active');
+      if (check) check.classList.remove('d-none');
+    } else {
+      btn.classList.remove('active');
+      if (check) check.classList.add('d-none');
+    }
+  });
+}
 
 /* ==============================================================================
    API HELPER & AUTHENTICATION
@@ -52,26 +162,24 @@ function getHeaders(extraHeaders = {}) {
 }
 
 async function apiCall(endpoint, options = {}) {
-  const url = endpoint.startsWith('http') ? endpoint : endpoint;
   const config = {
     ...options,
     headers: getHeaders(options.headers || {})
   };
 
   try {
-    const res = await fetch(url, config);
+    const res = await fetch(endpoint, config);
     if (res.status === 401) {
-      showToast('Autenticazione richiesta. Inserisci una Admin API Key valida in alto a destra.', 'error');
-      updateAuthStatus(false);
+      showToast('Autenticazione richiesta. Inserisci la Admin API Key corretta.', 'danger');
+      openDialog('dialog-admin-key');
       throw new Error('Unauthorized');
     }
     const json = await res.json().catch(() => null);
     if (!res.ok) {
-      const errMsg = json?.error?.message || json?.message || `Errore HTTP ${res.status}`;
-      showToast(errMsg, 'error');
+      const errMsg = json?.error?.message || json?.detail || json?.message || `Errore HTTP ${res.status}`;
+      showToast(errMsg, 'danger');
       throw new Error(errMsg);
     }
-    updateAuthStatus(true);
     return json;
   } catch (err) {
     if (err.message !== 'Unauthorized') {
@@ -82,78 +190,115 @@ async function apiCall(endpoint, options = {}) {
 }
 
 function initKeyManagement() {
-  const keyInput = document.getElementById('adminKeyInput');
-  if (keyInput) {
-    keyInput.value = state.adminKey;
-    keyInput.addEventListener('change', (e) => {
-      state.adminKey = e.target.value.trim();
-      sessionStorage.setItem('ng_admin_key', state.adminKey);
-      localStorage.setItem('ng_admin_key', state.adminKey);
-      refreshAllData();
-      showToast('Admin API Key aggiornata.', 'info');
+  const btnChangeKey = document.getElementById('btn-change-key');
+  if (btnChangeKey) {
+    btnChangeKey.addEventListener('click', () => {
+      const input = document.getElementById('input-admin-key');
+      if (input) input.value = state.adminKey;
+      openDialog('dialog-admin-key');
     });
+  }
+
+  const btnRefresh = document.getElementById('btn-refresh');
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => {
+      refreshAllData();
+      showToast('Dati aggiornati!', 'info');
+    });
+  }
+
+  // If no admin key, open dialog immediately
+  if (!state.adminKey) {
+    openDialog('dialog-admin-key');
   }
 }
 
-function updateAuthStatus(isConnected) {
-  const badge = document.getElementById('authStatusBadge');
-  if (!badge) return;
-  if (isConnected && state.adminKey) {
-    badge.className = 'health-badge';
-    badge.innerHTML = '<span class="health-dot"></span> Autenticato';
-  } else {
-    badge.className = 'badge badge-danger';
-    badge.innerHTML = 'Non Autenticato';
-  }
+function handleSaveAdminKey(e) {
+  e.preventDefault();
+  const input = document.getElementById('input-admin-key');
+  if (!input) return;
+  state.adminKey = input.value.trim();
+  sessionStorage.setItem('ng_admin_key', state.adminKey);
+  localStorage.setItem('ng_admin_key', state.adminKey);
+  closeDialog('dialog-admin-key');
+  showToast('Admin API Key salvata!', 'success');
+  refreshAllData();
 }
 
 /* ==============================================================================
-   NAVIGATION & TABS
+   NAVIGATION & SECTIONS
    ============================================================================== */
 
-function initNavigation() {
-  const navLinks = document.querySelectorAll('.nav-link');
-  navLinks.forEach(link => {
+function initSidebarNavigation() {
+  document.querySelectorAll('[data-section]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      const tabId = link.getAttribute('data-tab');
-      switchTab(tabId);
+      const section = link.getAttribute('data-section');
+      openSection(section);
     });
   });
+
+  // Handle URL hash changes
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(`section-${hash}`)) {
+      openSection(hash);
+    }
+  });
+
+  if (window.location.hash) {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById(`section-${hash}`)) {
+      openSection(hash);
+    }
+  }
 }
 
-function switchTab(tabId) {
-  state.activeTab = tabId;
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+function openSection(sectionId) {
+  state.activeSection = sectionId;
 
-  const activeLink = document.querySelector(`.nav-link[data-tab="${tabId}"]`);
-  const activePanel = document.getElementById(`tab-${tabId}`);
-  if (activeLink) activeLink.classList.add('active');
-  if (activePanel) activePanel.classList.add('active');
+  // Update sidebar active link
+  document.querySelectorAll('[data-section]').forEach(l => {
+    if (l.getAttribute('data-section') === sectionId) {
+      l.classList.add('active');
+    } else {
+      l.classList.remove('active');
+    }
+  });
 
-  const titles = {
-    overview: 'Panoramica & Stato Gateway',
-    applications: 'Applicazioni & API Key Client',
-    telegram: 'Integrazioni Bot Telegram',
-    gmail: 'Integrazioni Gmail & Server SMTP',
-    dispatcher: 'Sandbox Invio Notifiche Live',
-    notifications: 'Storico & Tracking Consegne',
-    audit: 'Audit Log di Sicurezza',
-  };
-  const topTitle = document.getElementById('topbarTitle');
-  if (topTitle && titles[tabId]) {
-    topTitle.textContent = titles[tabId];
+  // Update visible section
+  document.querySelectorAll('.dashboard-section').forEach(sec => {
+    sec.classList.add('d-none');
+    sec.classList.remove('active');
+  });
+
+  const targetSec = document.getElementById(`section-${sectionId}`);
+  if (targetSec) {
+    targetSec.classList.remove('d-none');
+    targetSec.classList.add('active');
   }
 
-  // Trigger tab data fetch
-  if (tabId === 'overview') { loadStats(); loadHealth(); loadRecentNotifications(); }
-  else if (tabId === 'applications') loadApplications();
-  else if (tabId === 'telegram') loadTelegramConfigs();
-  else if (tabId === 'gmail') loadGmailConfigs();
-  else if (tabId === 'dispatcher') initDispatcherSelectors();
-  else if (tabId === 'notifications') loadAllNotifications();
-  else if (tabId === 'audit') loadAuditLogs();
+  const titles = {
+    overview: 'Panoramica del Sistema',
+    apps: 'Applicazioni & API Keys',
+    telegram: 'Configurazioni Bot Telegram',
+    gmail: 'Account Gmail (App Password)',
+    smtp: 'Server SMTP Personalizzati',
+    test: 'Invia Notifica di Prova Live'
+  };
+
+  const titleEl = document.getElementById('page-title');
+  if (titleEl && titles[sectionId]) {
+    titleEl.textContent = titles[sectionId];
+  }
+
+  // Load relevant data
+  if (sectionId === 'overview') { loadStats(); loadHealth(); }
+  else if (sectionId === 'apps') { loadApplications(); }
+  else if (sectionId === 'telegram') { loadTelegramConfigs(); }
+  else if (sectionId === 'gmail') { loadGmailConfigs(); }
+  else if (sectionId === 'smtp') { loadSmtpConfigs(); }
+  else if (sectionId === 'test') { populateTestAppDropdown(); }
 }
 
 function refreshAllData() {
@@ -162,36 +307,11 @@ function refreshAllData() {
   loadApplications();
   loadTelegramConfigs();
   loadGmailConfigs();
+  loadSmtpConfigs();
 }
 
 /* ==============================================================================
-   MODAL LIGHT-DISMISS FALLBACK (modern-web-guidance)
-   ============================================================================== */
-
-function initDialogFallbacks() {
-  if (!('closedBy' in HTMLDialogElement.prototype)) {
-    const outside = (e, dialog) => {
-      const r = dialog.getBoundingClientRect();
-      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-    };
-    for (const dialog of document.querySelectorAll('dialog[closedby="any"]')) {
-      let pressedOutside = false;
-      dialog.addEventListener('pointerdown', (e) => { pressedOutside = outside(e, dialog); });
-      dialog.addEventListener('pointerup', (e) => { if (pressedOutside && outside(e, dialog)) dialog.close(); });
-    }
-  }
-
-  // Close buttons
-  document.querySelectorAll('[data-dialog-close]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const dialog = e.target.closest('dialog');
-      if (dialog) dialog.close();
-    });
-  });
-}
-
-/* ==============================================================================
-   OVERVIEW & HEALTH
+   OVERVIEW & HEALTH & STATS
    ============================================================================== */
 
 async function loadHealth() {
@@ -199,18 +319,24 @@ async function loadHealth() {
     const res = await fetch('/health');
     const data = await res.json();
     state.health = data;
-    
+
     const setSafe = (id, val) => {
       const el = document.getElementById(id);
       if (el) el.textContent = val;
     };
 
-    setSafe('healthStatusText', data.status ? data.status.toUpperCase() : 'UNKNOWN');
-    setSafe('healthUptimeText', formatSeconds(data.uptime_seconds));
-    setSafe('healthEnvText', data.environment || '-');
-    setSafe('healthDbText', data.components?.database || 'N/A');
-    setSafe('healthRedisText', data.components?.redis || 'N/A');
-    setSafe('healthCryptoText', data.components?.encryption || 'N/A');
+    setSafe('health-db', data.components?.database || 'OK');
+    setSafe('health-redis', data.components?.redis || 'OK');
+    setSafe('health-version', data.version ? `v${data.version}` : 'v1.0.0');
+
+    const badge = document.getElementById('system-status-badge');
+    if (badge) {
+      const isHealthy = data.status === 'healthy' || data.status === 'ok';
+      badge.className = isHealthy 
+        ? 'badge bg-success-subtle text-success border border-success-subtle px-3 py-2' 
+        : 'badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2';
+      badge.innerHTML = `<i class="bi bi-circle-fill me-1" style="font-size: 0.6rem;"></i> ${isHealthy ? 'Sistema Operativo' : 'Problemi Rilevati'}`;
+    }
   } catch (err) {
     console.error('Failed to load health:', err);
   }
@@ -221,46 +347,23 @@ async function loadStats() {
     const res = await apiCall('/api/v1/admin/stats');
     if (res?.data) {
       state.stats = res.data;
-      document.getElementById('statTotalApps').textContent = res.data.applications.total;
-      document.getElementById('statActiveApps').textContent = `${res.data.applications.active} attive`;
-      document.getElementById('statTelegramConfigs').textContent = res.data.telegram.total_configs;
-      document.getElementById('statGmailConfigs').textContent = res.data.gmail.total_configs;
-      document.getElementById('statTotalNotifs').textContent = res.data.notifications.total;
-      document.getElementById('statSuccessRate').textContent = `${res.data.notifications.success_rate}% successo`;
+      const setSafe = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+
+      setSafe('stat-apps', res.data.applications?.total || 0);
+      setSafe('stat-telegram', res.data.telegram?.total_configs || 0);
+      setSafe('stat-gmail', res.data.gmail?.total_configs || 0);
+      setSafe('stat-smtp', res.data.smtp?.total_configs || 0);
     }
   } catch (err) {
-    // handled in apiCall
-  }
-}
-
-async function loadRecentNotifications() {
-  try {
-    const res = await apiCall('/api/v1/admin/notifications?limit=8');
-    const container = document.getElementById('recentNotificationsTbody');
-    if (!container) return;
-
-    if (!res.data || res.data.length === 0) {
-      container.innerHTML = `<tr><td colspan="6" class="empty-state">Nessuna notifica registrata finora.</td></tr>`;
-      return;
-    }
-
-    container.innerHTML = res.data.map(n => `
-      <tr>
-        <td class="mono">${n.id.substring(0, 8)}...</td>
-        <td><span class="badge ${n.provider === 'telegram' ? 'badge-active' : 'badge-neutral'}">${n.provider}</span></td>
-        <td>${escapeHtml(n.recipient_summary || n.configuration_id.substring(0, 8))}</td>
-        <td><span class="badge badge-${n.status}">${n.status}</span></td>
-        <td>${n.attempts_count}</td>
-        <td>${formatDate(n.created_at)}</td>
-      </tr>
-    `).join('');
-  } catch (err) {
-    console.error('Failed to load recent notifications:', err);
+    // handled
   }
 }
 
 /* ==============================================================================
-   APPLICATIONS & API KEYS
+   APPLICATIONS MANAGEMENT
    ============================================================================== */
 
 async function loadApplications() {
@@ -268,42 +371,48 @@ async function loadApplications() {
     const res = await apiCall('/api/v1/admin/applications');
     state.applications = res.data || [];
     renderApplicationsTable();
-    populateAppDropdowns();
+    populateSelectAppLists();
+    
+    const countEl = document.getElementById('stat-apps');
+    if (countEl) countEl.textContent = state.applications.length;
   } catch (err) {
     console.error('Failed to load applications:', err);
   }
 }
 
 function renderApplicationsTable() {
-  const tbody = document.getElementById('applicationsTbody');
+  const tbody = document.getElementById('tbody-apps');
   if (!tbody) return;
 
   if (state.applications.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nessuna applicazione registrata. Clicca su "+ Nuova Applicazione" per iniziare.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nessuna applicazione registrata. Clicca su "+ Nuova Applicazione" per iniziare.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = state.applications.map(app => {
-    const permissions = (app.permissions || []).map(p => `<span class="badge badge-neutral">${p}</span>`).join(' ') || '<span class="text-muted">Nessuno</span>';
     const isActive = app.status === 'active';
     return `
       <tr>
         <td>
-          <div style="font-weight: 600;">${escapeHtml(app.name)}</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(app.description || 'Nessuna descrizione')}</div>
+          <div class="fw-bold">${escapeHtml(app.name)}</div>
+          <small class="text-muted font-monospace">${app.id}</small>
         </td>
-        <td class="mono">${app.id.substring(0, 8)}...</td>
-        <td><span class="badge badge-${isActive ? 'active' : 'disabled'}">${app.status}</span></td>
-        <td>${permissions}</td>
-        <td>${app.rate_limit_per_minute} req/m</td>
-        <td>${formatDate(app.created_at)}</td>
+        <td>${escapeHtml(app.description || '-')}</td>
         <td>
-          <div style="display: flex; gap: 0.35rem;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="promptRegenerateKey('${app.id}', '${escapeHtml(app.name)}')">Rigenera Key</button>
-            <button type="button" class="btn ${isActive ? 'btn-danger' : 'btn-secondary'} btn-sm" onclick="toggleAppStatus('${app.id}', '${isActive ? 'disabled' : 'active'}')">
+          <span class="badge ${isActive ? 'bg-success' : 'bg-secondary'}">${isActive ? 'Attiva' : 'Disabilitata'}</span>
+        </td>
+        <td>${formatDate(app.created_at)}</td>
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-primary" onclick="promptRegenerateKey('${app.id}', '${escapeHtml(app.name)}')">
+              <i class="bi bi-key me-1"></i>Rigenera Key
+            </button>
+            <button type="button" class="btn ${isActive ? 'btn-outline-warning' : 'btn-outline-success'}" onclick="toggleAppStatus('${app.id}', '${isActive ? 'disabled' : 'active'}')">
               ${isActive ? 'Disabilita' : 'Attiva'}
             </button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="promptDeleteApp('${app.id}', '${escapeHtml(app.name)}')">Elimina</button>
+            <button type="button" class="btn btn-outline-danger" onclick="promptDeleteApp('${app.id}', '${escapeHtml(app.name)}')">
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
         </td>
       </tr>
@@ -311,18 +420,48 @@ function renderApplicationsTable() {
   }).join('');
 }
 
-async function promptDeleteApp(appId, appName) {
-  if (!confirm(`Sei sicuro di voler eliminare DEFINITIVAMENTE l'applicazione "${appName}"?\n\nTutte le configurazioni, le API Key e lo storico notifiche associati verranno cancellati in modo irreversibile.`)) {
+function openNewAppDialog() {
+  document.getElementById('form-new-app')?.reset();
+  openDialog('dialog-new-app');
+}
+
+async function handleCreateApp(e) {
+  e.preventDefault();
+  const name = document.getElementById('app-name').value.trim();
+  const description = document.getElementById('app-desc').value.trim();
+
+  try {
+    const res = await apiCall('/api/v1/admin/applications', {
+      method: 'POST',
+      body: JSON.stringify({ name, description, rate_limit_per_minute: 120, permissions: ['telegram:send', 'gmail:send', 'smtp:send'] })
+    });
+
+    closeDialog('dialog-new-app');
+    showToast(`Applicazione "${name}" creata!`, 'success');
+
+    if (res?.data?.raw_api_key) {
+      document.getElementById('created-app-key').value = res.data.raw_api_key;
+      openDialog('dialog-app-created');
+    }
+
+    loadApplications();
+    loadStats();
+  } catch (err) {
+    // handled
+  }
+}
+
+async function promptRegenerateKey(appId, appName) {
+  if (!confirm(`Sei sicuro di voler rigenerare la API Key per "${appName}"? La chiave precedente smetterà immediatamente di funzionare.`)) {
     return;
   }
   try {
-    await apiCall(`/api/v1/admin/applications/${appId}`, { method: 'DELETE' });
-    showToast(`Applicazione "${appName}" eliminata con successo!`, 'success');
-    loadApplications();
-    loadStats();
-    loadTelegramConfigs();
-    loadGmailConfigs();
-    loadRecentNotifications();
+    const res = await apiCall(`/api/v1/admin/applications/${appId}/api-key/regenerate`, { method: 'POST' });
+    if (res?.data?.raw_api_key) {
+      document.getElementById('created-app-key').value = res.data.raw_api_key;
+      openDialog('dialog-app-created');
+      loadApplications();
+    }
   } catch (err) {
     // handled
   }
@@ -336,40 +475,39 @@ async function toggleAppStatus(appId, newStatus) {
     });
     showToast(`Stato applicazione aggiornato a '${newStatus}'.`, 'success');
     loadApplications();
+  } catch (err) {
+    // handled
+  }
+}
+
+async function promptDeleteApp(appId, appName) {
+  if (!confirm(`Sei sicuro di voler eliminare l'applicazione "${appName}"?\n\nTutte le configurazioni associate e i messaggi verranno eliminati in modo definitivo.`)) {
+    return;
+  }
+  try {
+    await apiCall(`/api/v1/admin/applications/${appId}`, { method: 'DELETE' });
+    showToast(`Applicazione "${appName}" eliminata.`, 'success');
+    loadApplications();
+    loadTelegramConfigs();
+    loadGmailConfigs();
+    loadSmtpConfigs();
     loadStats();
   } catch (err) {
     // handled
   }
 }
 
-async function promptRegenerateKey(appId, appName) {
-  if (!confirm(`Sei sicuro di voler rigenerare la API Key per l'applicazione "${appName}"? La chiave precedente smetterà immediatamente di funzionare.`)) {
-    return;
-  }
-  try {
-    const res = await apiCall(`/api/v1/admin/applications/${appId}/api-key/regenerate`, {
-      method: 'POST'
+function copyCreatedKey() {
+  const input = document.getElementById('created-app-key');
+  if (input) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast('API Key copiata negli appunti!', 'success');
     });
-    if (res?.data?.raw_api_key) {
-      showApiKeyRevealModal(appName, res.data.raw_api_key);
-      loadApplications();
-    }
-  } catch (err) {
-    // handled
   }
-}
-
-function showApiKeyRevealModal(appName, rawKey) {
-  const dialog = document.getElementById('keyRevealDialog');
-  const title = document.getElementById('revealAppName');
-  const keyDisplay = document.getElementById('revealKeyDisplay');
-  if (title) title.textContent = appName;
-  if (keyDisplay) keyDisplay.textContent = rawKey;
-  if (dialog) dialog.showModal();
 }
 
 /* ==============================================================================
-   TELEGRAM INTEGRATIONS
+   TELEGRAM MANAGEMENT
    ============================================================================== */
 
 async function loadTelegramConfigs() {
@@ -377,40 +515,43 @@ async function loadTelegramConfigs() {
     const res = await apiCall('/api/v1/admin/telegram');
     state.telegramConfigs = res.data || [];
     renderTelegramTable();
+    
+    const countEl = document.getElementById('stat-telegram');
+    if (countEl) countEl.textContent = state.telegramConfigs.length;
   } catch (err) {
     console.error('Failed to load telegram configs:', err);
   }
 }
 
 function renderTelegramTable() {
-  const tbody = document.getElementById('telegramTbody');
+  const tbody = document.getElementById('tbody-telegram');
   if (!tbody) return;
 
   if (state.telegramConfigs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nessuna configurazione Telegram creata.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Nessun bot Telegram configurato. Clicca su "Aggiungi Bot Telegram".</td></tr>`;
     return;
   }
 
   tbody.innerHTML = state.telegramConfigs.map(c => {
     const app = state.applications.find(a => a.id === c.application_id);
-    const appName = app ? app.name : c.application_id.substring(0, 8);
+    const appName = app ? app.name : (c.application_id ? c.application_id.substring(0, 8) : 'Globale');
     const isActive = c.is_active;
 
     return `
       <tr>
-        <td>
-          <div style="font-weight: 600;">${escapeHtml(c.name)}</div>
-          <div class="mono" style="font-size: 0.75rem; color: var(--text-muted);">${c.id}</div>
-        </td>
-        <td>${escapeHtml(appName)}</td>
-        <td class="mono">${escapeHtml(c.chat_id || 'Non specificato')}</td>
-        <td><span class="badge badge-${isActive ? 'active' : 'disabled'}">${isActive ? 'Attivo' : 'Disattivato'}</span></td>
+        <td><strong>${escapeHtml(appName)}</strong></td>
+        <td class="font-monospace">${escapeHtml(c.chat_id || 'N/A')}</td>
+        <td class="font-monospace">••••••••••••${c.id.substring(0, 4)}</td>
+        <td><span class="badge ${isActive ? 'bg-success' : 'bg-secondary'}">${isActive ? 'Attivo' : 'Disattivato'}</span></td>
         <td>${formatDate(c.created_at)}</td>
-        <td>
-          <div style="display: flex; gap: 0.35rem;">
-            <button type="button" class="btn btn-primary btn-sm" onclick="openTestTelegramModal('${c.id}', '${escapeHtml(c.name)}', '${c.chat_id || ''}')">Test Invia</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleTelegramStatus('${c.id}', ${!isActive})">${isActive ? 'Disabilita' : 'Attiva'}</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="promptDeleteTelegram('${c.id}', '${escapeHtml(c.name)}')">Elimina</button>
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-info" onclick="quickTestTelegram('${c.id}')">
+              <i class="bi bi-send me-1"></i>Test
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="promptDeleteTelegram('${c.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
         </td>
       </tr>
@@ -418,13 +559,39 @@ function renderTelegramTable() {
   }).join('');
 }
 
-async function promptDeleteTelegram(configId, name) {
-  if (!confirm(`Sei sicuro di voler eliminare la configurazione Telegram "${name}"?`)) {
-    return;
+function openNewTelegramDialog() {
+  document.getElementById('form-new-telegram')?.reset();
+  openDialog('dialog-new-telegram');
+}
+
+async function handleCreateTelegram(e) {
+  e.preventDefault();
+  const payload = {
+    application_id: document.getElementById('telegram-app-id').value,
+    name: 'Telegram Bot',
+    bot_token: document.getElementById('telegram-bot-token').value.trim(),
+    chat_id: document.getElementById('telegram-chat-id').value.trim() || null
+  };
+
+  try {
+    await apiCall('/api/v1/admin/telegram', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    closeDialog('dialog-new-telegram');
+    showToast('Bot Telegram salvato con successo!', 'success');
+    loadTelegramConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
   }
+}
+
+async function promptDeleteTelegram(configId) {
+  if (!confirm('Sei sicuro di voler eliminare questa configurazione Telegram?')) return;
   try {
     await apiCall(`/api/v1/admin/telegram/${configId}`, { method: 'DELETE' });
-    showToast(`Configurazione Telegram "${name}" eliminata.`, 'success');
+    showToast('Configurazione Telegram eliminata.', 'success');
     loadTelegramConfigs();
     loadStats();
   } catch (err) {
@@ -432,32 +599,26 @@ async function promptDeleteTelegram(configId, name) {
   }
 }
 
-async function toggleTelegramStatus(configId, newActive) {
+async function quickTestTelegram(configId) {
+  const chatId = prompt('Inserisci il Chat ID di test (lascia vuoto per usare quello default):');
+  if (chatId === null) return;
+
   try {
-    await apiCall(`/api/v1/admin/telegram/${configId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_active: newActive })
+    const res = await apiCall(`/api/v1/admin/telegram/${configId}/test`, {
+      method: 'POST',
+      body: JSON.stringify({
+        chat_id: chatId.trim() || undefined,
+        message: '🔔 Test Notifica Gateway AdminLTE 4.0 - Eseguito con Successo!'
+      })
     });
-    showToast(`Configurazione Telegram ${newActive ? 'attivata' : 'disattivata'}.`, 'success');
-    loadTelegramConfigs();
-    loadStats();
+    showToast('Notifica Telegram inviata con successo!', 'success');
   } catch (err) {
     // handled
   }
-}
-
-function openTestTelegramModal(configId, name, defaultChatId) {
-  const dialog = document.getElementById('testTelegramDialog');
-  document.getElementById('testTgConfigId').value = configId;
-  document.getElementById('testTgConfigName').textContent = name;
-  document.getElementById('testTgChatId').value = defaultChatId || '';
-  document.getElementById('testTgMessage').value = `<b>Notifica di Test</b> dal Gateway!\nConfigurazione: ${name}\nData: ${new Date().toLocaleString()}`;
-  document.getElementById('testTgResult').style.display = 'none';
-  dialog.showModal();
 }
 
 /* ==============================================================================
-   GMAIL & SMTP INTEGRATIONS
+   GMAIL MANAGEMENT
    ============================================================================== */
 
 async function loadGmailConfigs() {
@@ -465,44 +626,43 @@ async function loadGmailConfigs() {
     const res = await apiCall('/api/v1/admin/gmail');
     state.gmailConfigs = res.data || [];
     renderGmailTable();
+    
+    const countEl = document.getElementById('stat-gmail');
+    if (countEl) countEl.textContent = state.gmailConfigs.length;
   } catch (err) {
     console.error('Failed to load gmail configs:', err);
   }
 }
 
 function renderGmailTable() {
-  const tbody = document.getElementById('gmailTbody');
+  const tbody = document.getElementById('tbody-gmail');
   if (!tbody) return;
 
   if (state.gmailConfigs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nessuna configurazione Gmail/SMTP creata.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Nessun account Gmail configurato. Clicca su "Aggiungi Account Gmail".</td></tr>`;
     return;
   }
 
   tbody.innerHTML = state.gmailConfigs.map(c => {
     const app = state.applications.find(a => a.id === c.application_id);
-    const appName = app ? app.name : c.application_id.substring(0, 8);
+    const appName = app ? app.name : (c.application_id ? c.application_id.substring(0, 8) : 'Globale');
     const isActive = c.is_active;
-    const authBadge = c.auth_type === 'app_password' 
-      ? '<span class="badge badge-neutral">App Password (SMTP)</span>' 
-      : '<span class="badge badge-active">Google OAuth2</span>';
 
     return `
       <tr>
-        <td>
-          <div style="font-weight: 600;">${escapeHtml(c.name)}</div>
-          <div class="mono" style="font-size: 0.75rem; color: var(--text-muted);">${c.id}</div>
-        </td>
-        <td>${escapeHtml(appName)}</td>
-        <td>${authBadge}</td>
+        <td><strong>${escapeHtml(appName)}</strong></td>
         <td>${escapeHtml(c.username || c.from_email || 'N/A')}</td>
-        <td class="mono">${escapeHtml(c.smtp_host || 'smtp.gmail.com')}:${c.smtp_port || 587}</td>
-        <td><span class="badge badge-${isActive ? 'active' : 'disabled'}">${isActive ? 'Attivo' : 'Disattivato'}</span></td>
-        <td>
-          <div style="display: flex; gap: 0.35rem;">
-            <button type="button" class="btn btn-primary btn-sm" onclick="openTestGmailModal('${c.id}', '${escapeHtml(c.name)}', '${c.username || c.from_email || ''}')">Test Invia</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleGmailStatus('${c.id}', ${!isActive})">${isActive ? 'Disabilita' : 'Attiva'}</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="promptDeleteGmail('${c.id}', '${escapeHtml(c.name)}')">Elimina</button>
+        <td>${escapeHtml(c.from_name || '-')}</td>
+        <td><span class="badge ${isActive ? 'bg-success' : 'bg-secondary'}">${isActive ? 'Attivo' : 'Disattivato'}</span></td>
+        <td>${formatDate(c.created_at)}</td>
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-danger" onclick="quickTestGmail('${c.id}')">
+              <i class="bi bi-send me-1"></i>Test
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="promptDeleteGmail('${c.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
         </td>
       </tr>
@@ -510,13 +670,42 @@ function renderGmailTable() {
   }).join('');
 }
 
-async function promptDeleteGmail(configId, name) {
-  if (!confirm(`Sei sicuro di voler eliminare la configurazione Gmail/SMTP "${name}"?`)) {
-    return;
+function openNewGmailDialog() {
+  document.getElementById('form-new-gmail')?.reset();
+  openDialog('dialog-new-gmail');
+}
+
+async function handleCreateGmail(e) {
+  e.preventDefault();
+  const payload = {
+    application_id: document.getElementById('gmail-app-id').value,
+    name: 'Gmail App Account',
+    auth_type: 'app_password',
+    username: document.getElementById('gmail-email').value.trim(),
+    app_password: document.getElementById('gmail-app-password').value.trim(),
+    from_name: document.getElementById('gmail-sender-name').value.trim() || undefined,
+    from_email: document.getElementById('gmail-email').value.trim()
+  };
+
+  try {
+    await apiCall('/api/v1/admin/gmail', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    closeDialog('dialog-new-gmail');
+    showToast('Account Gmail salvato con successo!', 'success');
+    loadGmailConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
   }
+}
+
+async function promptDeleteGmail(configId) {
+  if (!confirm('Sei sicuro di voler eliminare questo account Gmail?')) return;
   try {
     await apiCall(`/api/v1/admin/gmail/${configId}`, { method: 'DELETE' });
-    showToast(`Configurazione Gmail/SMTP "${name}" eliminata.`, 'success');
+    showToast('Account Gmail eliminato.', 'success');
     loadGmailConfigs();
     loadStats();
   } catch (err) {
@@ -524,456 +713,272 @@ async function promptDeleteGmail(configId, name) {
   }
 }
 
-async function toggleGmailStatus(configId, newActive) {
+async function quickTestGmail(configId) {
+  const recipient = prompt('Inserisci indirizzo email di destinazione:');
+  if (!recipient) return;
+
   try {
-    await apiCall(`/api/v1/admin/gmail/${configId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_active: newActive })
+    await apiCall(`/api/v1/admin/gmail/${configId}/test`, {
+      method: 'POST',
+      body: JSON.stringify({
+        to: recipient.trim(),
+        subject: '🔔 Test Notifica Gateway Gmail - AdminLTE 4.0',
+        html: '<p>Questa è una email di test inviata dalla console <b>AdminLTE 4.0</b> del Notification Gateway.</p>'
+      })
     });
-    showToast(`Configurazione Gmail/SMTP ${newActive ? 'attivata' : 'disattivata'}.`, 'success');
-    loadGmailConfigs();
-    loadStats();
+    showToast('Email Gmail di prova inviata con successo!', 'success');
   } catch (err) {
     // handled
   }
 }
 
-function openTestGmailModal(configId, name, defaultEmail) {
-  const dialog = document.getElementById('testGmailDialog');
-  document.getElementById('testGmailConfigId').value = configId;
-  document.getElementById('testGmailConfigName').textContent = name;
-  document.getElementById('testGmailRecipient').value = defaultEmail || '';
-  document.getElementById('testGmailSubject').value = `Test Notifica Email da Gateway: ${name}`;
-  document.getElementById('testGmailBody').value = `<h1>Notifica Gateway</h1><p>Questa è un'email di prova inviata con successo tramite il Gateway!</p><p>Data: ${new Date().toLocaleString()}</p>`;
-  document.getElementById('testGmailResult').style.display = 'none';
-  dialog.showModal();
-}
-
 /* ==============================================================================
-   DISPATCHER SANDBOX
+   SMTP MANAGEMENT
    ============================================================================== */
 
-function initDispatcherSelectors() {
-  const providerSelect = document.getElementById('sandboxProvider');
-  const configSelect = document.getElementById('sandboxConfig');
-  const tgFields = document.getElementById('sandboxTelegramFields');
-  const emailFields = document.getElementById('sandboxEmailFields');
-
-  function updateFields() {
-    const provider = providerSelect.value;
-    if (provider === 'telegram') {
-      tgFields.style.display = 'block';
-      emailFields.style.display = 'none';
-      configSelect.innerHTML = state.telegramConfigs.map(c => `
-        <option value="${c.id}">${escapeHtml(c.name)} (${c.id.substring(0, 8)}...)</option>
-      `).join('') || '<option value="">Nessun bot Telegram configurato</option>';
-    } else {
-      tgFields.style.display = 'none';
-      emailFields.style.display = 'block';
-      configSelect.innerHTML = state.gmailConfigs.map(c => `
-        <option value="${c.id}">${escapeHtml(c.name)} (${c.username || 'SMTP'})</option>
-      `).join('') || '<option value="">Nessuna config Gmail/SMTP presente</option>';
-    }
-  }
-
-  providerSelect.onchange = updateFields;
-  updateFields();
-}
-
-/* ==============================================================================
-   NOTIFICATIONS HISTORY
-   ============================================================================== */
-
-async function loadAllNotifications() {
+async function loadSmtpConfigs() {
   try {
-    const statusFilter = document.getElementById('filterNotifStatus')?.value || '';
-    const providerFilter = document.getElementById('filterNotifProvider')?.value || '';
+    const res = await apiCall('/api/v1/admin/smtp');
+    state.smtpConfigs = res.data || [];
+    renderSmtpTable();
     
-    let url = '/api/v1/admin/notifications?limit=50';
-    if (statusFilter) url += `&status=${statusFilter}`;
-    if (providerFilter) url += `&provider=${providerFilter}`;
-
-    const res = await apiCall(url);
-    state.notifications = res.data || [];
-    renderNotificationsTable();
+    const countEl = document.getElementById('stat-smtp');
+    if (countEl) countEl.textContent = state.smtpConfigs.length;
   } catch (err) {
-    console.error('Failed to load notifications history:', err);
+    // Some backend builds might not have smtp route or return empty
   }
 }
 
-function renderNotificationsTable() {
-  const tbody = document.getElementById('notificationsTbody');
+function renderSmtpTable() {
+  const tbody = document.getElementById('tbody-smtp');
   if (!tbody) return;
 
-  if (state.notifications.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Nessuna notifica trovata con i filtri selezionati.</td></tr>`;
+  if (state.smtpConfigs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Nessun server SMTP custom registrato.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = state.notifications.map(n => {
+  tbody.innerHTML = state.smtpConfigs.map(c => {
+    const app = state.applications.find(a => a.id === c.application_id);
+    const appName = app ? app.name : (c.application_id ? c.application_id.substring(0, 8) : 'Globale');
     return `
       <tr>
-        <td class="mono">${n.id.substring(0, 8)}...</td>
-        <td><span class="badge ${n.provider === 'telegram' ? 'badge-active' : 'badge-neutral'}">${n.provider}</span></td>
-        <td>${escapeHtml(n.recipient_summary || n.configuration_id.substring(0, 8))}</td>
-        <td><span class="badge badge-${n.status}">${n.status}</span></td>
-        <td>${n.attempts_count}</td>
-        <td>${formatDate(n.created_at)}</td>
-        <td>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="inspectNotificationAttempts('${n.id}')">Dettagli & Tentativi</button>
+        <td><strong>${escapeHtml(appName)}</strong></td>
+        <td>${escapeHtml(c.host)}:${c.port}</td>
+        <td>${escapeHtml(c.username || c.from_email)}</td>
+        <td><span class="badge ${c.use_tls ? 'bg-info' : 'bg-secondary'}">${c.use_tls ? 'STARTTLS' : 'Plain'}</span></td>
+        <td><span class="badge ${c.is_active ? 'bg-success' : 'bg-secondary'}">${c.is_active ? 'Attivo' : 'Disattivato'}</span></td>
+        <td class="text-end">
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="promptDeleteSmtp('${c.id}')">
+            <i class="bi bi-trash"></i>
+          </button>
         </td>
       </tr>
     `;
   }).join('');
 }
 
-async function inspectNotificationAttempts(notificationId) {
+function openNewSmtpDialog() {
+  document.getElementById('form-new-smtp')?.reset();
+  openDialog('dialog-new-smtp');
+}
+
+async function handleCreateSmtp(e) {
+  e.preventDefault();
+  const payload = {
+    application_id: document.getElementById('smtp-app-id').value,
+    host: document.getElementById('smtp-host').value.trim(),
+    port: parseInt(document.getElementById('smtp-port').value, 10) || 587,
+    username: document.getElementById('smtp-username').value.trim(),
+    password: document.getElementById('smtp-password').value.trim(),
+    from_email: document.getElementById('smtp-from-email').value.trim(),
+    from_name: document.getElementById('smtp-from-name').value.trim() || undefined,
+    use_tls: document.getElementById('smtp-tls').checked
+  };
+
   try {
-    const res = await apiCall(`/api/v1/admin/notifications/${notificationId}`);
-    const n = res.data;
-    const dialog = document.getElementById('notifDetailDialog');
-    
-    document.getElementById('notifDetailId').textContent = n.id;
-    document.getElementById('notifDetailStatus').innerHTML = `<span class="badge badge-${n.status}">${n.status}</span>`;
-    document.getElementById('notifDetailProvider').textContent = n.provider;
-    document.getElementById('notifDetailSummary').textContent = n.recipient_summary || 'N/A';
-    document.getElementById('notifDetailCreated').textContent = formatDate(n.created_at);
-    document.getElementById('notifDetailSent').textContent = n.sent_at ? formatDate(n.sent_at) : 'Non ancora inviato';
-    document.getElementById('notifDetailError').textContent = n.sanitized_error_message || 'Nessun errore';
+    await apiCall('/api/v1/admin/smtp', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    closeDialog('dialog-new-smtp');
+    showToast('Server SMTP configurato con successo!', 'success');
+    loadSmtpConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
+  }
+}
 
-    const attemptsTbody = document.getElementById('notifAttemptsTbody');
-    if (n.attempts && n.attempts.length > 0) {
-      attemptsTbody.innerHTML = n.attempts.map(a => `
-        <tr>
-          <td>#${a.attempt_number}</td>
-          <td><span class="badge badge-${a.status}">${a.status}</span></td>
-          <td>${a.response_code || '-'}</td>
-          <td>${a.duration_ms ? `${a.duration_ms} ms` : '-'}</td>
-          <td>${escapeHtml(a.error_message || 'OK')}</td>
-          <td>${formatDate(a.attempted_at)}</td>
-        </tr>
-      `).join('');
-    } else {
-      attemptsTbody.innerHTML = `<tr><td colspan="6" class="text-muted" style="text-align: center;">Nessun tentativo registrato.</td></tr>`;
-    }
-
-    dialog.showModal();
+async function promptDeleteSmtp(configId) {
+  if (!confirm('Sei sicuro di voler eliminare questo server SMTP?')) return;
+  try {
+    await apiCall(`/api/v1/admin/smtp/${configId}`, { method: 'DELETE' });
+    showToast('Server SMTP eliminato.', 'success');
+    loadSmtpConfigs();
+    loadStats();
   } catch (err) {
     // handled
   }
 }
 
 /* ==============================================================================
-   AUDIT LOGS
+   LIVE NOTIFICATION TESTER
    ============================================================================== */
 
-async function loadAuditLogs() {
+function handleTestChannelChange() {
+  const channel = document.getElementById('test-channel').value;
+  const subjGroup = document.getElementById('group-test-subject');
+  const recipientInput = document.getElementById('test-recipient');
+
+  if (channel === 'telegram') {
+    if (subjGroup) subjGroup.classList.add('d-none');
+    if (recipientInput) recipientInput.placeholder = 'Chat ID Telegram (es. 12345678)';
+  } else {
+    if (subjGroup) subjGroup.classList.remove('d-none');
+    if (recipientInput) recipientInput.placeholder = 'Indirizzo Email (es. utente@dominio.it)';
+  }
+}
+
+function populateTestAppDropdown() {
+  // If apps exist, prefill apiKey from clipboard or memory if available
+  handleTestChannelChange();
+}
+
+async function handleSendTestNotification(e) {
+  e.preventDefault();
+  const channel = document.getElementById('test-channel').value;
+  const apiKey = document.getElementById('test-api-key').value.trim();
+  const recipient = document.getElementById('test-recipient').value.trim();
+  const subject = document.getElementById('test-subject').value.trim();
+  const message = document.getElementById('test-message').value.trim();
+
+  const btnSubmit = document.getElementById('btn-submit-test');
+  const resultBox = document.getElementById('test-result-box');
+  const resultJson = document.getElementById('test-result-json');
+
+  btnSubmit.disabled = true;
+  btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Invio in corso...';
+  resultBox.classList.add('d-none');
+
   try {
-    const res = await apiCall('/api/v1/admin/audit-logs?limit=50');
-    state.auditLogs = res.data || [];
-    renderAuditTable();
+    let endpoint = channel === 'telegram' ? '/api/v1/notifications/telegram' : '/api/v1/notifications/email';
+    let payload = channel === 'telegram' ? {
+      chat_id: recipient,
+      message: message
+    } : {
+      to: recipient,
+      subject: subject || 'Test Notification Gateway',
+      html: `<p>${escapeHtml(message)}</p>`
+    };
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    resultBox.classList.remove('d-none');
+    resultJson.textContent = JSON.stringify(data, null, 2);
+
+    if (res.ok) {
+      showToast('Notifica recapitata con successo!', 'success');
+    } else {
+      showToast(data.detail || data.error?.message || `Errore HTTP ${res.status}`, 'danger');
+    }
   } catch (err) {
-    console.error('Failed to load audit logs:', err);
+    resultBox.classList.remove('d-none');
+    resultJson.textContent = `Errore di rete / eccezione: ${err.message}`;
+    showToast('Errore durante l\'invio della notifica.', 'danger');
+  } finally {
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i> Invia Subito';
   }
-}
-
-function renderAuditTable() {
-  const tbody = document.getElementById('auditTbody');
-  if (!tbody) return;
-
-  if (state.auditLogs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nessun evento registrato nell'audit log.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = state.auditLogs.map(a => {
-    return `
-      <tr>
-        <td class="mono">${formatDate(a.created_at)}</td>
-        <td style="font-weight: 600;">${escapeHtml(a.action)}</td>
-        <td>${escapeHtml(a.actor)}</td>
-        <td class="mono">${escapeHtml(a.resource_type || '-')} (${(a.resource_id || '').substring(0, 8)})</td>
-        <td><span class="badge badge-${a.status === 'success' ? 'success' : 'danger'}">${a.status}</span></td>
-        <td class="mono" style="font-size: 0.75rem;">${escapeHtml(JSON.stringify(a.details || {}))}</td>
-      </tr>
-    `;
-  }).join('');
 }
 
 /* ==============================================================================
-   FORM HANDLERS
+   HELPERS & MODAL DIALOG UTILS
    ============================================================================== */
 
-function initFormHandlers() {
-  // Create Application Form
-  const appForm = document.getElementById('createAppForm');
-  if (appForm) {
-    appForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const permissions = [];
-      if (document.getElementById('permTelegram').checked) permissions.push('telegram:send');
-      if (document.getElementById('permGmail').checked) permissions.push('gmail:send');
+function populateSelectAppLists() {
+  document.querySelectorAll('.select-app-list').forEach(sel => {
+    const currentVal = sel.value;
+    if (state.applications.length === 0) {
+      sel.innerHTML = '<option value="">Nessuna applicazione disponibile</option>';
+    } else {
+      sel.innerHTML = state.applications.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+      if (currentVal) sel.value = currentVal;
+    }
+  });
+}
 
-      const payload = {
-        name: document.getElementById('appName').value.trim(),
-        description: document.getElementById('appDesc').value.trim(),
-        rate_limit_per_minute: parseInt(document.getElementById('appRateLimit').value, 10) || 60,
-        permissions: permissions
-      };
-
-      try {
-        const res = await apiCall('/api/v1/admin/applications', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        document.getElementById('createAppDialog').close();
-        appForm.reset();
-        showToast('Applicazione creata con successo!', 'success');
-        if (res?.data?.raw_api_key) {
-          showApiKeyRevealModal(payload.name, res.data.raw_api_key);
-        }
-        loadApplications();
-        loadStats();
-      } catch (err) {
-        // handled
-      }
-    });
-  }
-
-  // Create Telegram Config Form
-  const tgForm = document.getElementById('createTgForm');
-  if (tgForm) {
-    tgForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const payload = {
-        application_id: document.getElementById('tgAppId').value,
-        name: document.getElementById('tgName').value.trim(),
-        bot_token: document.getElementById('tgToken').value.trim(),
-        chat_id: document.getElementById('tgChatId').value.trim() || null,
-        is_active: document.getElementById('tgActive').checked
-      };
-
-      try {
-        await apiCall('/api/v1/admin/telegram', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        document.getElementById('createTgDialog').close();
-        tgForm.reset();
-        showToast('Bot Telegram configurato con successo!', 'success');
-        loadTelegramConfigs();
-        loadStats();
-      } catch (err) {
-        // handled
-      }
-    });
-  }
-
-  // Create Gmail/SMTP Config Form
-  const gmailForm = document.getElementById('createGmailForm');
-  if (gmailForm) {
-    gmailForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const authType = document.getElementById('gmailAuthType').value;
-      const payload = {
-        application_id: document.getElementById('gmailAppId').value,
-        name: document.getElementById('gmailName').value.trim(),
-        auth_type: authType,
-        is_active: document.getElementById('gmailActive').checked,
-        from_email: document.getElementById('gmailFromEmail').value.trim(),
-        from_name: document.getElementById('gmailFromName').value.trim() || null
-      };
-
-      if (authType === 'app_password') {
-        payload.smtp_host = document.getElementById('smtpHost').value.trim() || 'smtp.gmail.com';
-        payload.smtp_port = parseInt(document.getElementById('smtpPort').value, 10) || 587;
-        payload.use_tls = document.getElementById('smtpTls').checked;
-        payload.username = document.getElementById('smtpUser').value.trim();
-        payload.app_password = document.getElementById('smtpPass').value.trim();
-      } else {
-        payload.client_id = document.getElementById('oauthClientId').value.trim();
-        payload.client_secret = document.getElementById('oauthClientSecret').value.trim();
-      }
-
-      try {
-        await apiCall('/api/v1/admin/gmail', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        document.getElementById('createGmailDialog').close();
-        gmailForm.reset();
-        showToast('Integrazione Email/SMTP salvata con successo!', 'success');
-        loadGmailConfigs();
-        loadStats();
-      } catch (err) {
-        // handled
-      }
-    });
-  }
-
-  // Test Telegram Form Submit
-  const testTgForm = document.getElementById('testTgForm');
-  if (testTgForm) {
-    testTgForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const configId = document.getElementById('testTgConfigId').value;
-      const payload = {
-        chat_id: document.getElementById('testTgChatId').value.trim(),
-        message: document.getElementById('testTgMessage').value.trim(),
-        parse_mode: 'HTML'
-      };
-
-      const btn = testTgForm.querySelector('button[type="submit"]');
-      btn.disabled = true;
-      btn.textContent = 'Invio in corso...';
-      const resultBox = document.getElementById('testTgResult');
-
-      try {
-        const res = await apiCall(`/api/v1/admin/telegram/${configId}/test`, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        resultBox.style.display = 'block';
-        resultBox.className = 'payload-preview';
-        resultBox.textContent = `SUCCESS (HTTP 200):\n${JSON.stringify(res, null, 2)}`;
-        showToast('Messaggio Telegram inviato con successo!', 'success');
-      } catch (err) {
-        resultBox.style.display = 'block';
-        resultBox.className = 'payload-preview';
-        resultBox.style.color = '#ef4444';
-        resultBox.textContent = `FAILED:\n${err.message}`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Invia Messaggio Test';
-      }
-    });
-  }
-
-  // Test Gmail Form Submit
-  const testGmailForm = document.getElementById('testGmailForm');
-  if (testGmailForm) {
-    testGmailForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const configId = document.getElementById('testGmailConfigId').value;
-      const payload = {
-        to: document.getElementById('testGmailRecipient').value.trim(),
-        subject: document.getElementById('testGmailSubject').value.trim(),
-        html: document.getElementById('testGmailBody').value.trim()
-      };
-
-      const btn = testGmailForm.querySelector('button[type="submit"]');
-      btn.disabled = true;
-      btn.textContent = 'Invio email in corso...';
-      const resultBox = document.getElementById('testGmailResult');
-
-      try {
-        const res = await apiCall(`/api/v1/admin/gmail/${configId}/test`, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        resultBox.style.display = 'block';
-        resultBox.className = 'payload-preview';
-        resultBox.textContent = `SUCCESS (HTTP 200):\n${JSON.stringify(res, null, 2)}`;
-        showToast('Email di test inviata con successo!', 'success');
-      } catch (err) {
-        resultBox.style.display = 'block';
-        resultBox.className = 'payload-preview';
-        resultBox.style.color = '#ef4444';
-        resultBox.textContent = `FAILED:\n${err.message}`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Invia Email Test';
-      }
-    });
-  }
-
-  // Sandbox Live Dispatch Form
-  const sandboxForm = document.getElementById('sandboxForm');
-  if (sandboxForm) {
-    sandboxForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const provider = document.getElementById('sandboxProvider').value;
-      const configId = document.getElementById('sandboxConfig').value;
-      if (!configId) {
-        showToast('Seleziona una configurazione valida prima di inviare.', 'warning');
-        return;
-      }
-
-      const btn = sandboxForm.querySelector('button[type="submit"]');
-      btn.disabled = true;
-      btn.textContent = 'Esecuzione...';
-      const resultBox = document.getElementById('sandboxResultBox');
-      const startTime = performance.now();
-
-      try {
-        let endpoint = provider === 'telegram' 
-          ? `/api/v1/admin/telegram/${configId}/test`
-          : `/api/v1/admin/gmail/${configId}/test`;
-
-        let payload = provider === 'telegram' ? {
-          chat_id: document.getElementById('sbTgChatId').value.trim(),
-          message: document.getElementById('sbTgMessage').value.trim(),
-          parse_mode: 'HTML'
-        } : {
-          to: document.getElementById('sbEmailTo').value.trim(),
-          subject: document.getElementById('sbEmailSubject').value.trim(),
-          html: document.getElementById('sbEmailBody').value.trim()
-        };
-
-        const res = await apiCall(endpoint, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-
-        const duration = Math.round(performance.now() - startTime);
-        resultBox.style.color = '#38bdf8';
-        resultBox.textContent = `// HTTP 200 OK (${duration} ms)\n// Provider: ${provider.toUpperCase()}\n\n${JSON.stringify(res, null, 2)}`;
-        showToast(`Notifica ${provider} recapitata in ${duration}ms!`, 'success');
-      } catch (err) {
-        resultBox.style.color = '#ef4444';
-        resultBox.textContent = `// ERROR:\n${err.message}`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Esegui Notifica Live';
-      }
-    });
+function openDialog(dialogId) {
+  const dialog = document.getElementById(dialogId);
+  if (dialog && typeof dialog.showModal === 'function') {
+    dialog.showModal();
   }
 }
 
-function populateAppDropdowns() {
-  const tgSelect = document.getElementById('tgAppId');
-  const gmailSelect = document.getElementById('gmailAppId');
-  const options = state.applications.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
-  if (tgSelect) tgSelect.innerHTML = options || '<option value="">Crea prima un\'applicazione</option>';
-  if (gmailSelect) gmailSelect.innerHTML = options || '<option value="">Crea prima un\'applicazione</option>';
+function closeDialog(dialogId) {
+  const dialog = document.getElementById(dialogId);
+  if (dialog && typeof dialog.close === 'function') {
+    dialog.close();
+  }
 }
 
-/* ==============================================================================
-   UTILITIES
-   ============================================================================== */
+function initDialogFallbacks() {
+  if (!('closedBy' in HTMLDialogElement.prototype)) {
+    const outside = (e, dialog) => {
+      const r = dialog.getBoundingClientRect();
+      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    };
+    for (const dialog of document.querySelectorAll('dialog[closedby="any"]')) {
+      let pressedOutside = false;
+      dialog.addEventListener('pointerdown', (e) => { pressedOutside = outside(e, dialog); });
+      dialog.addEventListener('pointerup', (e) => { if (pressedOutside && outside(e, dialog)) dialog.close(); });
+    }
+  }
+}
 
 function showToast(message, type = 'info') {
-  const container = document.getElementById('toastContainer');
+  const container = document.getElementById('toast-container');
   if (!container) return;
 
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
-  container.appendChild(toast);
+  const toastId = 'toast-' + Math.random().toString(36).substring(2, 9);
+  const bgClass = type === 'success' ? 'bg-success text-white' :
+                  type === 'danger' ? 'bg-danger text-white' :
+                  type === 'warning' ? 'bg-warning text-dark' :
+                  'bg-primary text-white';
 
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(100%)';
-    setTimeout(() => toast.remove(), 250);
-  }, 4000);
-}
+  const toastEl = document.createElement('div');
+  toastEl.className = `toast align-items-center ${bgClass} border-0 shadow`;
+  toastEl.id = toastId;
+  toastEl.setAttribute('role', 'alert');
+  toastEl.setAttribute('aria-live', 'assertive');
+  toastEl.setAttribute('aria-atomic', 'true');
 
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('Copiato negli appunti!', 'success');
-  }).catch(() => {
-    showToast('Impossibile copiare il testo.', 'error');
-  });
+  toastEl.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">
+        ${escapeHtml(message)}
+      </div>
+      <button type="button" class="btn-close ${type !== 'warning' ? 'btn-close-white' : ''} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  `;
+
+  container.appendChild(toastEl);
+  if (window.bootstrap && window.bootstrap.Toast) {
+    const bsToast = new window.bootstrap.Toast(toastEl, { delay: 4000 });
+    bsToast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+  } else {
+    setTimeout(() => toastEl.remove(), 4000);
+  }
 }
 
 function escapeHtml(str) {
@@ -995,21 +1000,9 @@ function formatDate(isoString) {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+      minute: '2-digit'
     });
   } catch {
     return isoString;
   }
 }
-
-function formatSeconds(secs) {
-  if (!secs) return '0s';
-  const hours = Math.floor(secs / 3600);
-  const minutes = Math.floor((secs % 3600) / 60);
-  const seconds = Math.floor(secs % 60);
-  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
-  return `${seconds}s`;
-}
-
