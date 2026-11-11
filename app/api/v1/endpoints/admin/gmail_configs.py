@@ -189,3 +189,35 @@ async def test_gmail_config(
     result = await service.test_configuration(config_id, test_recipient=recipient)
     return APIResponse(data=result, message="Gmail test executed")
 
+
+@router.delete(
+    "/{config_id}",
+    response_model=APIResponse[bool],
+    summary="Delete Gmail/SMTP configuration",
+    dependencies=[Depends(require_admin_auth)],
+)
+async def delete_gmail_config(
+    config_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently deletes a Gmail or SMTP configuration."""
+    service = GmailConfigService(db)
+    audit_service = AuditService(db)
+
+    config = await service.get_config(config_id)
+    name = config.name
+
+    await service.delete_config(config_id)
+
+    await audit_service.log_event(
+        actor_type="admin",
+        action="gmail_config.delete",
+        resource_type="gmail_configuration",
+        resource_id=str(config_id),
+        details={"name": name},
+        ip_address=get_client_ip(request),
+    )
+
+    return APIResponse(data=True, message=f"Gmail/SMTP configuration '{name}' deleted successfully")
+

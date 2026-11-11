@@ -108,3 +108,9 @@ class TelegramConfigService:
             "message": result.error_message or f"Test message delivered (ID: {result.provider_message_id})",
         }
 
+    async def delete_config(self, config_id: uuid.UUID) -> None:
+        """Deletes a Telegram configuration."""
+        config = await self.get_config(config_id)
+        await self.repo.delete(config)
+        await self.session.flush()
+

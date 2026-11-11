@@ -94,3 +94,16 @@ async def test_application_lifecycle(client, admin_headers):
     )
     assert new_key_res.status_code == 200
 
+    # 7. Delete application
+    del_res = await client.delete(
+        f"/api/v1/admin/applications/{app_id}", headers=admin_headers
+    )
+    assert del_res.status_code == 200
+    assert del_res.json()["data"] is True
+
+    # Application no longer exists (404)
+    get_del_res = await client.get(
+        f"/api/v1/admin/applications/{app_id}", headers=admin_headers
+    )
+    assert get_del_res.status_code == 404
+

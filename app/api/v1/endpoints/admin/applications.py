@@ -170,3 +170,34 @@ async def revoke_api_key(
 
     return APIResponse(data=True, message="API Key revoked successfully")
 
+
+@router.delete(
+    "/{app_id}",
+    response_model=APIResponse[bool],
+    summary="Delete an application and all its configurations",
+)
+async def delete_application(
+    app_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently deletes an application, including its API keys, configs, and notifications."""
+    app_service = ApplicationService(db)
+    audit_service = AuditService(db)
+
+    app = await app_service.get_application(app_id)
+    app_name = app.name
+
+    await app_service.delete_application(app_id)
+
+    await audit_service.log_event(
+        actor_type="admin",
+        action="application.delete",
+        resource_type="application",
+        resource_id=str(app_id),
+        details={"name": app_name},
+        ip_address=get_client_ip(request),
+    )
+
+    return APIResponse(data=True, message=f"Application '{app_name}' deleted successfully")
+

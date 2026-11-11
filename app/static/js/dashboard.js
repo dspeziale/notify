@@ -298,11 +298,29 @@ function renderApplicationsTable() {
             <button type="button" class="btn ${isActive ? 'btn-danger' : 'btn-secondary'} btn-sm" onclick="toggleAppStatus('${app.id}', '${isActive ? 'disabled' : 'active'}')">
               ${isActive ? 'Disabilita' : 'Attiva'}
             </button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="promptDeleteApp('${app.id}', '${escapeHtml(app.name)}')">Elimina</button>
           </div>
         </td>
       </tr>
     `;
   }).join('');
+}
+
+async function promptDeleteApp(appId, appName) {
+  if (!confirm(`Sei sicuro di voler eliminare DEFINITIVAMENTE l'applicazione "${appName}"?\n\nTutte le configurazioni, le API Key e lo storico notifiche associati verranno cancellati in modo irreversibile.`)) {
+    return;
+  }
+  try {
+    await apiCall(`/api/v1/admin/applications/${appId}`, { method: 'DELETE' });
+    showToast(`Applicazione "${appName}" eliminata con successo!`, 'success');
+    loadApplications();
+    loadStats();
+    loadTelegramConfigs();
+    loadGmailConfigs();
+    loadRecentNotifications();
+  } catch (err) {
+    // handled
+  }
 }
 
 async function toggleAppStatus(appId, newStatus) {
@@ -387,11 +405,26 @@ function renderTelegramTable() {
           <div style="display: flex; gap: 0.35rem;">
             <button type="button" class="btn btn-primary btn-sm" onclick="openTestTelegramModal('${c.id}', '${escapeHtml(c.name)}', '${c.chat_id || ''}')">Test Invia</button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="toggleTelegramStatus('${c.id}', ${!isActive})">${isActive ? 'Disabilita' : 'Attiva'}</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="promptDeleteTelegram('${c.id}', '${escapeHtml(c.name)}')">Elimina</button>
           </div>
         </td>
       </tr>
     `;
   }).join('');
+}
+
+async function promptDeleteTelegram(configId, name) {
+  if (!confirm(`Sei sicuro di voler eliminare la configurazione Telegram "${name}"?`)) {
+    return;
+  }
+  try {
+    await apiCall(`/api/v1/admin/telegram/${configId}`, { method: 'DELETE' });
+    showToast(`Configurazione Telegram "${name}" eliminata.`, 'success');
+    loadTelegramConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
+  }
 }
 
 async function toggleTelegramStatus(configId, newActive) {
@@ -464,11 +497,26 @@ function renderGmailTable() {
           <div style="display: flex; gap: 0.35rem;">
             <button type="button" class="btn btn-primary btn-sm" onclick="openTestGmailModal('${c.id}', '${escapeHtml(c.name)}', '${c.username || c.from_email || ''}')">Test Invia</button>
             <button type="button" class="btn btn-secondary btn-sm" onclick="toggleGmailStatus('${c.id}', ${!isActive})">${isActive ? 'Disabilita' : 'Attiva'}</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="promptDeleteGmail('${c.id}', '${escapeHtml(c.name)}')">Elimina</button>
           </div>
         </td>
       </tr>
     `;
   }).join('');
+}
+
+async function promptDeleteGmail(configId, name) {
+  if (!confirm(`Sei sicuro di voler eliminare la configurazione Gmail/SMTP "${name}"?`)) {
+    return;
+  }
+  try {
+    await apiCall(`/api/v1/admin/gmail/${configId}`, { method: 'DELETE' });
+    showToast(`Configurazione Gmail/SMTP "${name}" eliminata.`, 'success');
+    loadGmailConfigs();
+    loadStats();
+  } catch (err) {
+    // handled
+  }
 }
 
 async function toggleGmailStatus(configId, newActive) {

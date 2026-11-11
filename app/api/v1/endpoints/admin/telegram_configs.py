@@ -110,3 +110,30 @@ async def test_telegram_config(
     result = await service.test_configuration(config_id, chat_id=chat_id)
     return APIResponse(data=result, message="Telegram test executed")
 
+
+@router.delete("/{config_id}", response_model=APIResponse[bool], summary="Delete Telegram configuration")
+async def delete_telegram_config(
+    config_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently deletes a Telegram bot configuration."""
+    service = TelegramConfigService(db)
+    audit_service = AuditService(db)
+
+    config = await service.get_config(config_id)
+    name = config.name
+
+    await service.delete_config(config_id)
+
+    await audit_service.log_event(
+        actor_type="admin",
+        action="telegram_config.delete",
+        resource_type="telegram_configuration",
+        resource_id=str(config_id),
+        details={"name": name},
+        ip_address=get_client_ip(request),
+    )
+
+    return APIResponse(data=True, message=f"Telegram configuration '{name}' deleted successfully")
+

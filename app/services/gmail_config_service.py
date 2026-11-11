@@ -259,3 +259,9 @@ class GmailConfigService:
             "success": result.success,
             "message": result.error_message or f"Test email sent successfully (ID: {result.provider_message_id})",
         }
+
+    async def delete_config(self, config_id: uuid.UUID) -> None:
+        """Deletes a Gmail/SMTP configuration."""
+        config = await self.get_config(config_id)
+        await self.repo.delete(config)
+        await self.session.flush()

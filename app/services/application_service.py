@@ -127,3 +127,11 @@ class ApplicationService:
         """Lists all registered applications."""
         return await self.app_repo.list_all_with_relations(offset=offset, limit=limit)
 
+    async def delete_application(self, app_id: uuid.UUID) -> None:
+        """Permanently deletes an application and all cascading children."""
+        app = await self.app_repo.get_by_id_with_relations(app_id)
+        if not app:
+            raise NotFoundException(f"Application {app_id} not found")
+        await self.app_repo.delete(app)
+        await self.session.flush()
+
