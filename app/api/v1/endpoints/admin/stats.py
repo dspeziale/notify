@@ -1,12 +1,14 @@
 """Admin statistics and dashboard summary endpoints."""
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db, require_admin_auth
+from app.models.api_key import APIKey
 from app.models.application import Application
+from app.models.audit_log import AuditLog
 from app.models.gmail_config import GmailConfiguration
-from app.models.notification import Notification
+from app.models.notification import Notification, NotificationAttempt
 from app.models.telegram_config import TelegramConfiguration
 from app.schemas.common import APIResponse
 
@@ -21,7 +23,7 @@ async def get_system_stats(
     admin_auth: bool = Depends(require_admin_auth),
     db: AsyncSession = Depends(get_db),
 ):
-    """Calculates live metrics for the administrative dashboard."""
+    """Calculates live metrics and database storage archives for the administrative dashboard."""
     # Applications
     total_apps_q = await db.execute(select(func.count(Application.id)))
     total_apps = total_apps_q.scalar() or 0
@@ -68,6 +70,16 @@ async def get_system_stats(
     )
     pending_notifs = pending_notifs_q.scalar() or 0
 
+    # Attempts & Audit count
+    total_attempts_q = await db.execute(select(func.count(NotificationAttempt.id)))
+    total_attempts = total_attempts_q.scalar() or 0
+
+    total_audit_q = await db.execute(select(func.count(AuditLog.id)))
+    total_audit = total_audit_q.scalar() or 0
+
+    total_keys_q = await db.execute(select(func.count(APIKey.id)))
+    total_keys = total_keys_q.scalar() or 0
+
     # Group by provider
     tg_notifs_q = await db.execute(
         select(func.count(Notification.id)).where(Notification.provider == "telegram")
@@ -78,6 +90,44 @@ async def get_system_stats(
         select(func.count(Notification.id)).where(Notification.provider == "email")
     )
     email_notifs = email_notifs_q.scalar() or 0
+
+    # Physical Database & Tables Storage Sizing (PostgreSQL compatible)
+    db_size_bytes = 0
+    db_size_pretty = "N/A"
+    table_sizes = {}
+
+    try:
+        # Overall Database Size
+        db_size_res = await db.execute(text("SELECT pg_database_size(current_database()), pg_size_pretty(pg_database_size(current_database()))"))
+        db_row = db_size_res.first()
+        if db_row:
+            db_size_bytes = int(db_row[0])
+            db_size_pretty = str(db_row[1])
+
+        # Individual Table Sizes
+        tables_to_inspect = [
+            "notifications",
+            "notification_attempts",
+            "audit_logs",
+            "applications",
+            "api_keys",
+            "telegram_configurations",
+            "gmail_configurations",
+        ]
+        for tbl in tables_to_inspect:
+            try:
+                t_res = await db.execute(text(f"SELECT pg_total_relation_size('{tbl}'), pg_size_pretty(pg_total_relation_size('{tbl}'))"))
+                t_row = t_res.first()
+                if t_row:
+                    table_sizes[tbl] = {
+                        "bytes": int(t_row[0]),
+                        "pretty": str(t_row[1]),
+                    }
+            except Exception:
+                pass
+    except Exception:
+        # SQLite / Mock environments fallback
+        db_size_pretty = "In-Memory / SQLite"
 
     return APIResponse(
         data={
@@ -102,6 +152,20 @@ async def get_system_stats(
                 "failed": failed_notifs,
                 "pending": pending_notifs,
                 "success_rate": round((sent_notifs / total_notifs * 100), 1) if total_notifs > 0 else 100.0,
+            },
+            "storage": {
+                "database_size_bytes": db_size_bytes,
+                "database_size_pretty": db_size_pretty,
+                "records": {
+                    "notifications": total_notifs,
+                    "notification_attempts": total_attempts,
+                    "audit_logs": total_audit,
+                    "applications": total_apps,
+                    "api_keys": total_keys,
+                    "telegram_configs": total_tg,
+                    "gmail_configs": total_gmail,
+                },
+                "tables": table_sizes,
             },
         }
     )

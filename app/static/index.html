@@ -250,8 +250,8 @@
               </div>
             </div>
 
-            <!-- Health & Quick Actions Row -->
-            <div class="row g-3">
+            <!-- Health & Database Storage Row -->
+            <div class="row g-3 mb-4">
               <div class="col-lg-6">
                 <div class="card shadow-sm border-0 h-100">
                   <div class="card-header bg-transparent border-bottom">
@@ -285,28 +285,37 @@
                 </div>
               </div>
 
+              <!-- Database & Archive Sizes Card -->
               <div class="col-lg-6">
                 <div class="card shadow-sm border-0 h-100">
-                  <div class="card-header bg-transparent border-bottom">
-                    <h5 class="card-title fw-semibold mb-0"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Azioni Rapide</h5>
+                  <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-semibold mb-0"><i class="bi bi-database-fill-gear me-2 text-success"></i>Dimensioni Archivi & Storage</h5>
+                    <span class="badge bg-primary fs-6 px-3 py-1 font-monospace" id="storage-db-total">-- MB</span>
                   </div>
-                  <div class="card-body d-flex flex-column gap-2 justify-content-center">
-                    <button class="btn btn-primary d-flex align-items-center justify-content-between p-3" onclick="openNewAppDialog()">
-                      <span><i class="bi bi-plus-circle-fill me-2"></i>Registra Nuova Applicazione</span>
-                      <i class="bi bi-chevron-right"></i>
-                    </button>
-                    <button class="btn btn-outline-info d-flex align-items-center justify-content-between p-3" onclick="openNewTelegramDialog()">
-                      <span><i class="bi bi-telegram me-2"></i>Collega Bot Telegram</span>
-                      <i class="bi bi-chevron-right"></i>
-                    </button>
-                    <button class="btn btn-outline-danger d-flex align-items-center justify-content-between p-3" onclick="openNewGmailDialog()">
-                      <span><i class="bi bi-google me-2"></i>Configura Account Gmail</span>
-                      <i class="bi bi-chevron-right"></i>
-                    </button>
-                    <button class="btn btn-outline-success d-flex align-items-center justify-content-between p-3" onclick="openSection('test')">
-                      <span><i class="bi bi-send me-2"></i>Esegui Test di Invio Live</span>
-                      <i class="bi bi-chevron-right"></i>
-                    </button>
+                  <div class="card-body">
+                    <div class="list-group list-group-flush small">
+                      <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                        <div>
+                          <strong>Archivio Notifiche & Log Consegna</strong>
+                          <div class="text-muted" id="storage-notifs-records">0 record totali</div>
+                        </div>
+                        <span class="badge bg-body-secondary text-body font-monospace" id="storage-notifs-size">--</span>
+                      </div>
+                      <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                        <div>
+                          <strong>Audit Log di Sicurezza & Tracciamento</strong>
+                          <div class="text-muted" id="storage-audit-records">0 eventi registrati</div>
+                        </div>
+                        <span class="badge bg-body-secondary text-body font-monospace" id="storage-audit-size">--</span>
+                      </div>
+                      <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                        <div>
+                          <strong>Anagrafica Applicazioni & Chiavi Crittografiche</strong>
+                          <div class="text-muted" id="storage-apps-records">0 applicazioni</div>
+                        </div>
+                        <span class="badge bg-body-secondary text-body font-monospace" id="storage-apps-size">--</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

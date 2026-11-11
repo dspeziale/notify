@@ -352,6 +352,25 @@ async function loadStats() {
       setSafe('stat-apps', res.data.applications?.total || 0);
       setSafe('stat-telegram', res.data.telegram?.total_configs || 0);
       setSafe('stat-gmail', res.data.gmail?.total_configs || 0);
+
+      // Storage sizing and archives
+      if (res.data.storage) {
+        const s = res.data.storage;
+        setSafe('storage-db-total', s.database_size_pretty || 'N/A');
+
+        const rec = s.records || {};
+        const tbl = s.tables || {};
+
+        setSafe('storage-notifs-records', `${rec.notifications || 0} notifiche (${rec.notification_attempts || 0} tentativi)`);
+        setSafe('storage-notifs-size', tbl.notifications?.pretty || tbl.notification_attempts?.pretty ? 
+          `${tbl.notifications?.pretty || '0 kB'} + ${tbl.notification_attempts?.pretty || '0 kB'}` : '--');
+
+        setSafe('storage-audit-records', `${rec.audit_logs || 0} eventi registrati`);
+        setSafe('storage-audit-size', tbl.audit_logs?.pretty || '--');
+
+        setSafe('storage-apps-records', `${rec.applications || 0} app (${rec.api_keys || 0} chiavi api)`);
+        setSafe('storage-apps-size', tbl.applications?.pretty || '--');
+      }
     }
   } catch (err) {
     // handled
