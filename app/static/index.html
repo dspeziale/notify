@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/static/vendor/css/adminlte.min.css">
   <link rel="stylesheet" href="/static/vendor/css/bootstrap-icons.min.css">
   <!-- Custom Styles for Dashboard enhancements & Font scaling -->
-  <link rel="stylesheet" href="/static/css/dashboard-adminlte.css?v=0.6.4">
+  <link rel="stylesheet" href="/static/css/dashboard-adminlte.css?v=0.6.5">
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
   <!-- Main App Wrapper -->
@@ -360,12 +360,86 @@
 
           <!-- SECTION: TELEGRAM -->
           <section id="section-telegram" class="dashboard-section d-none">
+            <!-- Telegram Bot Creation Guide Card -->
+            <div class="card shadow-sm border-0 mb-4 bg-body-tertiary">
+              <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-2">
+                <span class="fw-semibold text-info">
+                  <i class="bi bi-info-circle-fill me-2"></i>Guida Rapida: Come creare e configurare un Bot Telegram
+                </span>
+                <button class="btn btn-xs btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTelegramGuide" aria-expanded="true">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+              <div class="collapse show" id="collapseTelegramGuide">
+                <div class="card-body py-3">
+                  <div class="row g-3">
+                    <div class="col-md-3">
+                      <div class="p-3 border rounded h-100 bg-body">
+                        <div class="d-flex align-items-center mb-2">
+                          <span class="badge bg-info text-white rounded-circle me-2 p-2">1</span>
+                          <strong>Cerca @BotFather</strong>
+                        </div>
+                        <p class="small text-muted mb-2">Apri l'app Telegram e cerca l'account ufficiale con spunta blu <strong>@BotFather</strong>.</p>
+                        <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm w-100 py-1">
+                          <i class="bi bi-telegram me-1"></i> Apri @BotFather
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="p-3 border rounded h-100 bg-body">
+                        <div class="d-flex align-items-center mb-2">
+                          <span class="badge bg-info text-white rounded-circle me-2 p-2">2</span>
+                          <strong>Comando /newbot</strong>
+                        </div>
+                        <p class="small text-muted mb-2">Invia il comando <code>/newbot</code> nella chat. Ti verrà chiesto:</p>
+                        <ul class="small text-muted ps-3 mb-0">
+                          <li>Un <em>Nome visibile</em> (es: <code>Alert Azienda</code>)</li>
+                          <li>Uno <em>Username univoco</em> che termina con <code>bot</code> (es: <code>AziendaAlert_bot</code>)</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="p-3 border rounded h-100 bg-body">
+                        <div class="d-flex align-items-center mb-2">
+                          <span class="badge bg-info text-white rounded-circle me-2 p-2">3</span>
+                          <strong>Preleva il Token</strong>
+                        </div>
+                        <p class="small text-muted mb-2">@BotFather risponderà con il <strong>Bot Token</strong>:</p>
+                        <div class="bg-body-secondary p-1 rounded font-monospace small text-truncate" title="Formato Token">
+                          123456789:ABCdefGhI...
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle mt-2 w-100">
+                          <i class="bi bi-shield-lock-fill me-1"></i> Cifrato in AES-256
+                        </span>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="p-3 border rounded h-100 bg-body">
+                        <div class="d-flex align-items-center mb-2">
+                          <span class="badge bg-info text-white rounded-circle me-2 p-2">4</span>
+                          <strong>Chat ID &amp; Test</strong>
+                        </div>
+                        <p class="small text-muted mb-2">Avvia il bot premendo <code>/start</code>. Per ottenere il tuo Chat ID usa il bot <a href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a>.</p>
+                        <p class="small text-muted mb-0">Per i gruppi/canali, aggiungi il bot come admin (l'ID inizia con <code>-100...</code>).</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Telegram Bots Table Card -->
             <div class="card shadow-sm border-0">
               <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
                 <h5 class="card-title fw-semibold mb-0"><i class="bi bi-telegram me-2 text-info"></i>Configurazioni Bot Telegram</h5>
-                <button class="btn btn-sm btn-info text-white" onclick="openNewTelegramDialog()">
-                  <i class="bi bi-plus-lg me-1"></i> Aggiungi Bot Telegram
-                </button>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-info" onclick="openTelegramGuideModal()">
+                    <i class="bi bi-book me-1"></i> Guida Dettagliata
+                  </button>
+                  <button class="btn btn-sm btn-info text-white" onclick="openNewTelegramDialog()">
+                    <i class="bi bi-plus-lg me-1"></i> Aggiungi Bot Telegram
+                  </button>
+                </div>
               </div>
               <div class="card-body p-0">
                 <div class="table-responsive">
@@ -518,7 +592,7 @@
         </div>
         <div class="text-end">
           <a href="#" class="small font-monospace text-decoration-none fw-semibold text-primary" onclick="openSystemInfoDialog(event)" title="Visualizza caratteristiche e specifiche di VORTEX" id="footer-version-tag">
-            <i class="bi bi-info-circle me-1"></i>Versione: <strong>v0.6.4</strong>
+            <i class="bi bi-info-circle me-1"></i>Versione: <strong>v0.6.5</strong>
           </a>
         </div>
       </div>
@@ -605,6 +679,18 @@
         <h5 class="fw-bold mb-0"><i class="bi bi-telegram me-2 text-info"></i>Configura Bot Telegram</h5>
         <button type="button" class="btn-close" onclick="closeDialog('dialog-new-telegram')"></button>
       </div>
+
+      <!-- Quick Guidance Box -->
+      <div class="alert alert-info py-2 px-3 small d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <i class="bi bi-info-circle-fill me-1"></i>
+          Non hai ancora un Bot o non sai dove trovare il Token?
+        </div>
+        <button type="button" class="btn btn-outline-info btn-xs py-0 px-2 fw-semibold text-nowrap ms-2" onclick="openTelegramGuideModal()">
+          Guida Rapida
+        </button>
+      </div>
+
       <form id="form-new-telegram" onsubmit="handleCreateTelegram(event)">
         <div class="mb-3">
           <label class="form-label fw-semibold">Applicazione</label>
@@ -766,6 +852,116 @@
     </div>
   </dialog>
 
+  <!-- Dedicated Telegram Bot Creation Guide Modal -->
+  <dialog id="dialog-telegram-guide" class="dashboard-dialog" style="max-inline-size: min(94vw, 760px);" closedby="any">
+    <div class="dialog-content">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-telegram me-2 text-info"></i>Guida: Come creare un Bot Telegram per VORTEX
+        </h5>
+        <button type="button" class="btn-close" onclick="closeDialog('dialog-telegram-guide')"></button>
+      </div>
+
+      <div class="pe-1">
+        <div class="alert alert-primary py-2 px-3 small d-flex align-items-center mb-3">
+          <i class="bi bi-lightbulb-fill text-warning fs-5 me-2"></i>
+          <span>I Bot Telegram sono gratuiti, istantanei e consentono a VORTEX sia di <strong>inviare notifiche push</strong> sia di <strong>ricevere risposte</strong> in tempo reale.</span>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="card mb-3 border">
+          <div class="card-header bg-body-tertiary d-flex align-items-center py-2">
+            <span class="badge bg-primary rounded-circle me-2">1</span>
+            <strong class="text-primary">Apri @BotFather su Telegram</strong>
+          </div>
+          <div class="card-body py-2 small">
+            <p class="mb-1"><strong>@BotFather</strong> è il bot ufficiale di Telegram per la gestione e creazione di tutti i bot (riconoscibile dalla spunta blu di verifica).</p>
+            <p class="mb-2">Cercalo nella barra di ricerca di Telegram oppure clicca sul link diretto:</p>
+            <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-telegram me-1"></i> Apri https://t.me/BotFather
+            </a>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="card mb-3 border">
+          <div class="card-header bg-body-tertiary d-flex align-items-center py-2">
+            <span class="badge bg-primary rounded-circle me-2">2</span>
+            <strong class="text-primary">Crea il bot con il comando /newbot</strong>
+          </div>
+          <div class="card-body py-2 small">
+            <ol class="mb-1 ps-3">
+              <li class="mb-1">Nella chat con @BotFather, premi <strong>Avvia</strong> o invia il comando:
+                <code class="d-inline-block bg-body-secondary px-2 py-0.5 rounded font-monospace ms-1">/newbot</code>
+              </li>
+              <li class="mb-1">Inserisci il <strong>Nome del bot</strong> (nome visibile che comparirà nella lista chat, es: <em>Alert Gestionale VORTEX</em>).</li>
+              <li>Inserisci lo <strong>Username univoco</strong> del bot:
+                <ul class="text-muted mt-1 mb-0">
+                  <li>Deve terminare obbligatoriamente con <code>bot</code> o <code>_bot</code>.</li>
+                  <li>Esempio: <code>vortex_gestionale_bot</code> oppure <code>NotificheAziendaBot</code>.</li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="card mb-3 border">
+          <div class="card-header bg-body-tertiary d-flex align-items-center py-2">
+            <span class="badge bg-primary rounded-circle me-2">3</span>
+            <strong class="text-primary">Salva il Token API generato</strong>
+          </div>
+          <div class="card-body py-2 small">
+            <p class="mb-1">@BotFather ti risponderà confermando la creazione e fornendoti il <strong>Token HTTP API</strong>:</p>
+            <div class="p-2 bg-dark text-warning font-monospace rounded mb-2 small text-break">
+              Use this token to access the HTTP API:<br>
+              <strong>7123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ1234567</strong>
+            </div>
+            <p class="mb-0 text-muted">Copia questa stringa: è il <strong>Bot Token</strong> da incollare in VORTEX. Verrà protetto a riposo con cifratura <strong>AES-256-GCM</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="card mb-3 border">
+          <div class="card-header bg-body-tertiary d-flex align-items-center py-2">
+            <span class="badge bg-primary rounded-circle me-2">4</span>
+            <strong class="text-primary">Come trovare il Chat ID (Destinatario)</strong>
+          </div>
+          <div class="card-body py-2 small">
+            <p class="mb-1">Prima che un bot possa inviarti messaggi, <strong>devi avviare la conversazione con lui</strong>:</p>
+            <ol class="ps-3 mb-2">
+              <li class="mb-1">Cerca il tuo bot su Telegram con lo username appena creato (es: <code>@vortex_gestionale_bot</code>) e premi <strong>/start</strong>.</li>
+              <li>Per conoscere il tuo numero di <strong>Chat ID</strong>:
+                <ul class="text-muted mt-1 mb-0">
+                  <li><strong>Chat Privata</strong>: Apri il bot ausiliario <a href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a> e premi Avvia: ti risponderà istantaneamente con il tuo ID numerico (es: <code>123456789</code>).</li>
+                  <li><strong>Gruppi o Canali</strong>: Aggiungi il tuo bot al gruppo come Amministratore. Il Chat ID di un supergruppo inizia con <code>-100</code> (es: <code>-1001987654321</code>).</li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="card mb-3 border">
+          <div class="card-header bg-body-tertiary d-flex align-items-center py-2">
+            <span class="badge bg-success rounded-circle me-2">5</span>
+            <strong class="text-success">Configura e Invia con VORTEX</strong>
+          </div>
+          <div class="card-body py-2 small">
+            <p class="mb-0">Clicca su <strong>Aggiungi Bot Telegram</strong> in VORTEX, seleziona l'Applicazione, incolla il <strong>Bot Token</strong> e opzionalmente il <strong>Default Chat ID</strong>. Salva ed esegui subito un invio di prova!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-3 pt-2 border-top">
+        <button type="button" class="btn btn-secondary" onclick="closeDialog('dialog-telegram-guide')">Chiudi</button>
+        <button type="button" class="btn btn-primary" onclick="closeDialog('dialog-telegram-guide'); openNewTelegramDialog();">
+          <i class="bi bi-plus-lg me-1"></i> Aggiungi Bot Ora
+        </button>
+      </div>
+    </div>
+  </dialog>
+
   <!-- System & Features Info Modal (Tabbed Dialog) -->
   <dialog id="dialog-system-info" class="dashboard-dialog" style="max-inline-size: min(94vw, 780px);" closedby="any">
     <div class="dialog-content">
@@ -791,6 +987,11 @@
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="tab-inbound-btn" data-bs-toggle="tab" data-bs-target="#tab-inbound-pane" type="button" role="tab">
             <i class="bi bi-arrow-left-right me-1 text-success"></i>Bidirezionalità
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-telegram-guide-btn" data-bs-toggle="tab" data-bs-target="#tab-telegram-guide-pane" type="button" role="tab">
+            <i class="bi bi-telegram me-1 text-info"></i>Guida Bot Telegram
           </button>
         </li>
       </ul>
@@ -829,7 +1030,7 @@
                 </tr>
                 <tr>
                   <th class="bg-body-tertiary">Versione Applicativa</th>
-                  <td class="font-monospace text-primary" id="modal-system-version">v0.6.4</td>
+                  <td class="font-monospace text-primary" id="modal-system-version">v0.6.5</td>
                 </tr>
                 <tr>
                   <th class="bg-body-tertiary">Framework Core</th>
@@ -865,6 +1066,29 @@
             <p class="mb-0 text-muted">Endpoint <code>/api/v1/inbound/email</code> per la ricezione di risposte email inoltrate tramite webhook, relay o notifiche Google Cloud Pub/Sub.</p>
           </div>
         </div>
+
+        <!-- Tab 4: Guida Bot Telegram -->
+        <div class="tab-pane fade p-2" id="tab-telegram-guide-pane" role="tabpanel">
+          <h6 class="fw-bold text-info mb-2"><i class="bi bi-telegram me-2"></i>Istruzioni per Creare un Bot Telegram</h6>
+          <div class="small">
+            <div class="mb-2 pb-2 border-bottom">
+              <span class="badge bg-primary me-1">1</span> <strong>Contatta @BotFather</strong>
+              <p class="text-muted mb-0">Cerca <code>@BotFather</code> in Telegram (l'account con la spunta blu di verifica) e premi <em>Avvia</em>.</p>
+            </div>
+            <div class="mb-2 pb-2 border-bottom">
+              <span class="badge bg-primary me-1">2</span> <strong>Invia il comando /newbot</strong>
+              <p class="text-muted mb-0">Digita <code>/newbot</code>. Ti verrà chiesto di assegnare un nome (es: <em>Notifiche VORTEX</em>) e uno username univoco terminante in <code>bot</code> (es: <code>vortex_notifiche_bot</code>).</p>
+            </div>
+            <div class="mb-2 pb-2 border-bottom">
+              <span class="badge bg-primary me-1">3</span> <strong>Copia il Bot Token</strong>
+              <p class="text-muted mb-0">@BotFather genererà il token HTTP (es: <code>123456789:ABCdefGhI...</code>). Copialo e incollalo nel form di configurazione di VORTEX.</p>
+            </div>
+            <div class="mb-1">
+              <span class="badge bg-primary me-1">4</span> <strong>Chat ID &amp; Destinatari</strong>
+              <p class="text-muted mb-0">Avvia una chat con il tuo bot premendo <code>/start</code>. Per conoscere il tuo Chat ID privato, usa il bot <a href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a>. Per i gruppi, aggiungi il bot come admin (Chat ID con prefisso <code>-100...</code>).</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="d-flex justify-content-end mt-4">
@@ -880,6 +1104,6 @@
   <script src="/static/vendor/js/bootstrap.bundle.min.js"></script>
   <script src="/static/vendor/js/adminlte.min.js"></script>
   <!-- Main Dashboard Logic -->
-  <script src="/static/js/dashboard.js?v=0.6.4"></script>
+  <script src="/static/js/dashboard.js?v=0.6.5"></script>
 </body>
 </html>

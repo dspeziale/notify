@@ -1,6 +1,6 @@
 [project]
 name = "vortex-notification-center"
-version = "0.6.4"
+version = "0.6.5"
 description = "VORTEX - Versatile Omnichannel Routing & Telegram-Email eXchange"
 authors = [{ name = "Senior Backend Engineer" }]
 readme = "README.md"
