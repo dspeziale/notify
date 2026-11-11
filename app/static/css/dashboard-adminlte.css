@@ -135,6 +135,20 @@ dialog.dashboard-dialog,
   overflow: hidden !important;
   overflow-x: hidden !important;
   box-sizing: border-box !important;
+  scrollbar-width: thin;
+}
+
+/* Remove any horizontal scrollbars on dialogs and modal content across all rendering engines */
+dialog::-webkit-scrollbar:horizontal,
+.dashboard-dialog::-webkit-scrollbar:horizontal,
+.dialog-content::-webkit-scrollbar:horizontal,
+.modal-body-custom::-webkit-scrollbar:horizontal,
+dialog form::-webkit-scrollbar:horizontal,
+.dashboard-dialog form::-webkit-scrollbar:horizontal {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  background: transparent !important;
 }
 
 dialog::backdrop {
@@ -336,4 +350,15 @@ dialog form {
   width: 200px;
   outline: none;
 }
+
+/* Footer Typography & Style Symmetry */
+.app-footer,
+.app-footer *,
+.footer-left,
+.footer-right,
+#footer-version-tag {
+  font-family: var(--bs-body-font-family) !important;
+  letter-spacing: 0.02em;
+}
+
 

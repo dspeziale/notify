@@ -25,13 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial data load
   refreshAllData();
 
-  // Periodic health check
+  // Periodic background refresh
   setInterval(() => {
     loadHealth();
     if (state.activeSection === 'overview') {
       loadStats();
     }
   }, 30000);
+
+  // Auto-refresh inbound message queue when active on the inbound tab
+  setInterval(() => {
+    if (state.activeSection === 'inbound') {
+      loadInboundMessages();
+    }
+  }, 5000);
 });
 
 /* ==============================================================================

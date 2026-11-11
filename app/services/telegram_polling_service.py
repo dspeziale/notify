@@ -98,11 +98,11 @@ async def sync_telegram_inbound_messages(db: AsyncSession) -> int:
                     err_desc = res.json().get("description", "").lower()
                     if "webhook" in err_desc:
                         logger.info("Webhook active on bot %s. Deleting webhook...", cfg.id)
-                        await client.post(f"https://api.telegram.org/bot{bot_token}/deleteWebhook")
+                        await client.post(f"https://api.telegram.org/bot{bot_token}/deleteWebhook", json={"drop_pending_updates": False})
                         await asyncio.sleep(0.5)
                         res = await client.get(url, params=params)
                     else:
-                        logger.debug("Telegram polling conflict: %s", err_desc)
+                        logger.debug("Telegram polling conflict on bot %s: %s", cfg.id, err_desc)
                         continue
 
                 if res.status_code != 200:
@@ -165,21 +165,37 @@ async def sync_telegram_inbound_messages(db: AsyncSession) -> int:
 
 async def run_telegram_inbound_poller():
     """Background continuous loop polling active Telegram bots.
-    Uses Redis distributed locking with TTL to ensure only ONE worker process polls at any given time.
+    Uses Redis distributed leasing with worker ownership renewal to ensure only ONE worker
+    process polls Telegram at any given time, preventing Telegram Bot API 409 Conflicts.
     """
-    logger.info("Starting background Telegram inbound message polling worker.")
-    # Stagger worker starts
+    worker_id = f"worker-{uuid.uuid4().hex[:8]}"
+    lock_key = "vortex:telegram_poller_lock"
+    logger.info("Starting background Telegram inbound polling worker (%s).", worker_id)
+
+    # Stagger worker starts to avoid boot race
     await asyncio.sleep(random.uniform(0.5, 3.0))
 
     while True:
+        have_lock = False
+        redis = None
         try:
             redis = await _get_redis()
-            have_lock = False
             if redis:
-                # 8-second lease lock
-                acquired = await redis.set("vortex:telegram_poller_lock", "locked", ex=8, nx=True)
-                have_lock = bool(acquired)
+                # Try to acquire lock if free
+                acquired = await redis.set(lock_key, worker_id, ex=8, nx=True)
+                if not acquired:
+                    # Check if currently held by this same worker
+                    curr_owner = await redis.get(lock_key)
+                    if curr_owner == worker_id:
+                        # Refresh our own lease for 8 seconds
+                        await redis.set(lock_key, worker_id, ex=8)
+                        have_lock = True
+                    else:
+                        have_lock = False
+                else:
+                    have_lock = True
             else:
+                # In standalone/no-redis environments, poller runs directly
                 have_lock = True
 
             if have_lock:
@@ -187,9 +203,16 @@ async def run_telegram_inbound_poller():
                     await sync_telegram_inbound_messages(db)
 
         except asyncio.CancelledError:
-            logger.info("Telegram inbound polling worker cancelled.")
+            logger.info("Telegram inbound polling worker (%s) cancelled.", worker_id)
+            if redis and have_lock:
+                try:
+                    curr_owner = await redis.get(lock_key)
+                    if curr_owner == worker_id:
+                        await redis.delete(lock_key)
+                except Exception:
+                    pass
             break
         except Exception as exc:
-            logger.error("Unexpected error in Telegram polling worker: %s", exc)
+            logger.error("Unexpected error in Telegram polling worker (%s): %s", worker_id, exc)
 
         await asyncio.sleep(3.5)
