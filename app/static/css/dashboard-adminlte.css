@@ -118,8 +118,10 @@ body.font-size-xl { font-size: 26px !important; }
 }
 
 /* Native Dialogs (modern-web-guidance compliant) */
+dialog,
 dialog:modal,
-dialog.dashboard-dialog {
+dialog.dashboard-dialog,
+.dashboard-dialog {
   overscroll-behavior: contain;
   border-radius: 0.75rem;
   background: var(--bs-body-bg);
@@ -130,7 +132,9 @@ dialog.dashboard-dialog {
   margin: auto;
   padding: 0;
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.4);
-  overflow: hidden; /* Prevent horizontal scrollbars on dialog */
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
 }
 
 dialog::backdrop {
@@ -140,28 +144,57 @@ dialog::backdrop {
   backdrop-filter: blur(4px);
 }
 
+dialog .dialog-content,
 .dashboard-dialog .dialog-content {
   padding: 1.5rem;
   max-height: calc(90vh - 2rem);
-  overflow-y: auto;
-  overflow-x: hidden; /* Strictly prevent horizontal scrolling */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 /* Form input spacing and box-sizing inside dialogs */
+dialog *,
+.dashboard-dialog * {
+  box-sizing: border-box;
+}
+
 .dashboard-dialog .form-control,
-.dashboard-dialog .form-select {
-  max-width: 100%;
+.dashboard-dialog .form-select,
+dialog .form-control,
+dialog .form-select {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
   font-size: inherit;
 }
 
-.dashboard-dialog .row {
-  margin-left: -0.5rem;
-  margin-right: -0.5rem;
+.dashboard-dialog .row,
+dialog .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
 }
 
-.dashboard-dialog .row > * {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+.dashboard-dialog .row > *,
+dialog .row > * {
+  padding-left: 0.35rem !important;
+  padding-right: 0.35rem !important;
+  box-sizing: border-box !important;
+}
+
+.dashboard-dialog form,
+dialog form {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.btn-close:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25) !important;
 }
 
 .modal-header-custom {
