@@ -282,8 +282,7 @@ function openSection(sectionId) {
     overview: 'Panoramica del Sistema',
     apps: 'Applicazioni & API Keys',
     telegram: 'Configurazioni Bot Telegram',
-    gmail: 'Account Gmail (App Password)',
-    smtp: 'Server SMTP Personalizzati',
+    gmail: 'Account Email (Gmail & SMTP)',
     test: 'Invia Notifica di Prova Live'
   };
 
@@ -297,7 +296,6 @@ function openSection(sectionId) {
   else if (sectionId === 'apps') { loadApplications(); }
   else if (sectionId === 'telegram') { loadTelegramConfigs(); }
   else if (sectionId === 'gmail') { loadGmailConfigs(); }
-  else if (sectionId === 'smtp') { loadSmtpConfigs(); }
   else if (sectionId === 'test') { populateTestAppDropdown(); }
 }
 
@@ -307,7 +305,6 @@ function refreshAllData() {
   loadApplications();
   loadTelegramConfigs();
   loadGmailConfigs();
-  loadSmtpConfigs();
 }
 
 /* ==============================================================================
@@ -355,7 +352,6 @@ async function loadStats() {
       setSafe('stat-apps', res.data.applications?.total || 0);
       setSafe('stat-telegram', res.data.telegram?.total_configs || 0);
       setSafe('stat-gmail', res.data.gmail?.total_configs || 0);
-      setSafe('stat-smtp', res.data.smtp?.total_configs || 0);
     }
   } catch (err) {
     // handled
@@ -639,7 +635,7 @@ function renderGmailTable() {
   if (!tbody) return;
 
   if (state.gmailConfigs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Nessun account Gmail configurato. Clicca su "Aggiungi Account Gmail".</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Nessun account Email/SMTP configurato. Clicca su "Aggiungi Account Email".</td></tr>`;
     return;
   }
 
@@ -650,9 +646,13 @@ function renderGmailTable() {
 
     return `
       <tr>
+        <td>
+          <strong>${escapeHtml(c.name || 'Account Email')}</strong>
+          <div class="small text-muted">${c.auth_type === 'app_password' ? 'App Password / SMTP' : 'OAuth2'}</div>
+        </td>
         <td><strong>${escapeHtml(appName)}</strong></td>
-        <td>${escapeHtml(c.username || c.from_email || 'N/A')}</td>
-        <td>${escapeHtml(c.from_name || '-')}</td>
+        <td>${escapeHtml(c.email_address || c.username || c.from_email || 'N/A')}</td>
+        <td class="font-monospace">${escapeHtml(c.smtp_host || 'smtp.gmail.com')}:${c.smtp_port || 587}</td>
         <td><span class="badge ${isActive ? 'bg-success' : 'bg-secondary'}">${isActive ? 'Attivo' : 'Disattivato'}</span></td>
         <td>${formatDate(c.created_at)}</td>
         <td class="text-end">
@@ -672,19 +672,30 @@ function renderGmailTable() {
 
 function openNewGmailDialog() {
   document.getElementById('form-new-gmail')?.reset();
+  const hostInput = document.getElementById('gmail-smtp-host');
+  const portInput = document.getElementById('gmail-smtp-port');
+  if (hostInput) hostInput.value = 'smtp.gmail.com';
+  if (portInput) portInput.value = 587;
   openDialog('dialog-new-gmail');
 }
 
 async function handleCreateGmail(e) {
   e.preventDefault();
+  const emailVal = document.getElementById('gmail-email').value.trim();
+  const nameVal = document.getElementById('gmail-config-name')?.value.trim() || 'Account Email';
+  const hostVal = document.getElementById('gmail-smtp-host')?.value.trim() || 'smtp.gmail.com';
+  const portVal = parseInt(document.getElementById('gmail-smtp-port')?.value, 10) || 587;
+  const passwordVal = document.getElementById('gmail-app-password').value.trim();
+
   const payload = {
     application_id: document.getElementById('gmail-app-id').value,
-    name: 'Gmail App Account',
+    name: nameVal,
+    email_address: emailVal,
     auth_type: 'app_password',
-    username: document.getElementById('gmail-email').value.trim(),
-    app_password: document.getElementById('gmail-app-password').value.trim(),
-    from_name: document.getElementById('gmail-sender-name').value.trim() || undefined,
-    from_email: document.getElementById('gmail-email').value.trim()
+    smtp_host: hostVal,
+    smtp_port: portVal,
+    app_password: passwordVal,
+    is_active: true
   };
 
   try {
@@ -693,7 +704,7 @@ async function handleCreateGmail(e) {
       body: JSON.stringify(payload)
     });
     closeDialog('dialog-new-gmail');
-    showToast('Account Gmail salvato con successo!', 'success');
+    showToast('Configurazione Email salvata con successo!', 'success');
     loadGmailConfigs();
     loadStats();
   } catch (err) {
@@ -702,10 +713,10 @@ async function handleCreateGmail(e) {
 }
 
 async function promptDeleteGmail(configId) {
-  if (!confirm('Sei sicuro di voler eliminare questo account Gmail?')) return;
+  if (!confirm('Sei sicuro di voler eliminare questa configurazione Email?')) return;
   try {
     await apiCall(`/api/v1/admin/gmail/${configId}`, { method: 'DELETE' });
-    showToast('Account Gmail eliminato.', 'success');
+    showToast('Configurazione Email eliminata.', 'success');
     loadGmailConfigs();
     loadStats();
   } catch (err) {
@@ -714,110 +725,18 @@ async function promptDeleteGmail(configId) {
 }
 
 async function quickTestGmail(configId) {
-  const recipient = prompt('Inserisci indirizzo email di destinazione:');
+  const recipient = prompt('Inserisci indirizzo email di destinazione del test:');
   if (!recipient) return;
 
   try {
-    await apiCall(`/api/v1/admin/gmail/${configId}/test`, {
-      method: 'POST',
-      body: JSON.stringify({
-        to: recipient.trim(),
-        subject: '🔔 Test Notifica Gateway Gmail - AdminLTE 4.0',
-        html: '<p>Questa è una email di test inviata dalla console <b>AdminLTE 4.0</b> del Notification Gateway.</p>'
-      })
+    await apiCall(`/api/v1/admin/gmail/${configId}/test?recipient=${encodeURIComponent(recipient.trim())}`, {
+      method: 'POST'
     });
-    showToast('Email Gmail di prova inviata con successo!', 'success');
+    showToast('Email di prova inviata con successo!', 'success');
   } catch (err) {
     // handled
   }
 }
-
-/* ==============================================================================
-   SMTP MANAGEMENT
-   ============================================================================== */
-
-async function loadSmtpConfigs() {
-  try {
-    const res = await apiCall('/api/v1/admin/smtp');
-    state.smtpConfigs = res.data || [];
-    renderSmtpTable();
-    
-    const countEl = document.getElementById('stat-smtp');
-    if (countEl) countEl.textContent = state.smtpConfigs.length;
-  } catch (err) {
-    // Some backend builds might not have smtp route or return empty
-  }
-}
-
-function renderSmtpTable() {
-  const tbody = document.getElementById('tbody-smtp');
-  if (!tbody) return;
-
-  if (state.smtpConfigs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Nessun server SMTP custom registrato.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = state.smtpConfigs.map(c => {
-    const app = state.applications.find(a => a.id === c.application_id);
-    const appName = app ? app.name : (c.application_id ? c.application_id.substring(0, 8) : 'Globale');
-    return `
-      <tr>
-        <td><strong>${escapeHtml(appName)}</strong></td>
-        <td>${escapeHtml(c.host)}:${c.port}</td>
-        <td>${escapeHtml(c.username || c.from_email)}</td>
-        <td><span class="badge ${c.use_tls ? 'bg-info' : 'bg-secondary'}">${c.use_tls ? 'STARTTLS' : 'Plain'}</span></td>
-        <td><span class="badge ${c.is_active ? 'bg-success' : 'bg-secondary'}">${c.is_active ? 'Attivo' : 'Disattivato'}</span></td>
-        <td class="text-end">
-          <button type="button" class="btn btn-sm btn-outline-danger" onclick="promptDeleteSmtp('${c.id}')">
-            <i class="bi bi-trash"></i>
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function openNewSmtpDialog() {
-  document.getElementById('form-new-smtp')?.reset();
-  openDialog('dialog-new-smtp');
-}
-
-async function handleCreateSmtp(e) {
-  e.preventDefault();
-  const payload = {
-    application_id: document.getElementById('smtp-app-id').value,
-    host: document.getElementById('smtp-host').value.trim(),
-    port: parseInt(document.getElementById('smtp-port').value, 10) || 587,
-    username: document.getElementById('smtp-username').value.trim(),
-    password: document.getElementById('smtp-password').value.trim(),
-    from_email: document.getElementById('smtp-from-email').value.trim(),
-    from_name: document.getElementById('smtp-from-name').value.trim() || undefined,
-    use_tls: document.getElementById('smtp-tls').checked
-  };
-
-  try {
-    await apiCall('/api/v1/admin/smtp', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    closeDialog('dialog-new-smtp');
-    showToast('Server SMTP configurato con successo!', 'success');
-    loadSmtpConfigs();
-    loadStats();
-  } catch (err) {
-    // handled
-  }
-}
-
-async function promptDeleteSmtp(configId) {
-  if (!confirm('Sei sicuro di voler eliminare questo server SMTP?')) return;
-  try {
-    await apiCall(`/api/v1/admin/smtp/${configId}`, { method: 'DELETE' });
-    showToast('Server SMTP eliminato.', 'success');
-    loadSmtpConfigs();
-    loadStats();
-  } catch (err) {
     // handled
   }
 }

@@ -156,13 +156,7 @@
             <li class="nav-item">
               <a href="#gmail" class="nav-link" data-section="gmail">
                 <i class="nav-icon bi bi-envelope-at-fill"></i>
-                <p>Account Gmail</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="#smtp" class="nav-link" data-section="smtp">
-                <i class="nav-icon bi bi-send-check-fill"></i>
-                <p>Server SMTP</p>
+                <p>Email (Gmail & SMTP)</p>
               </a>
             </li>
             <li class="nav-item">
@@ -217,7 +211,7 @@
           <section id="section-overview" class="dashboard-section active">
             <!-- Small Stat Boxes (AdminLTE 4.0 style) -->
             <div class="row g-3 mb-4">
-              <div class="col-lg-3 col-6">
+              <div class="col-lg-4 col-6">
                 <div class="small-box bg-primary text-white shadow-sm rounded-3 p-3">
                   <div class="inner">
                     <h3 class="fw-bold mb-1" id="stat-apps">0</h3>
@@ -229,7 +223,7 @@
                   </a>
                 </div>
               </div>
-              <div class="col-lg-3 col-6">
+              <div class="col-lg-4 col-6">
                 <div class="small-box bg-info text-white shadow-sm rounded-3 p-3">
                   <div class="inner">
                     <h3 class="fw-bold mb-1" id="stat-telegram">0</h3>
@@ -241,26 +235,14 @@
                   </a>
                 </div>
               </div>
-              <div class="col-lg-3 col-6">
+              <div class="col-lg-4 col-12">
                 <div class="small-box bg-danger text-white shadow-sm rounded-3 p-3">
                   <div class="inner">
                     <h3 class="fw-bold mb-1" id="stat-gmail">0</h3>
-                    <p class="mb-0">Account Gmail App</p>
+                    <p class="mb-0">Account Email (Gmail / SMTP)</p>
                   </div>
                   <i class="bi bi-envelope-at-fill small-box-icon opacity-25"></i>
                   <a href="#gmail" class="small-box-footer link-light text-decoration-none mt-2 d-inline-block">
-                    Gestisci <i class="bi bi-arrow-right-circle"></i>
-                  </a>
-                </div>
-              </div>
-              <div class="col-lg-3 col-6">
-                <div class="small-box bg-success text-white shadow-sm rounded-3 p-3">
-                  <div class="inner">
-                    <h3 class="fw-bold mb-1" id="stat-smtp">0</h3>
-                    <p class="mb-0">Server SMTP Custom</p>
-                  </div>
-                  <i class="bi bi-send-check-fill small-box-icon opacity-25"></i>
-                  <a href="#smtp" class="small-box-footer link-light text-decoration-none mt-2 d-inline-block">
                     Gestisci <i class="bi bi-arrow-right-circle"></i>
                   </a>
                 </div>
@@ -391,13 +373,13 @@
             </div>
           </section>
 
-          <!-- SECTION: GMAIL -->
+          <!-- SECTION: EMAIL (GMAIL & SMTP) -->
           <section id="section-gmail" class="dashboard-section d-none">
             <div class="card shadow-sm border-0">
               <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
-                <h5 class="card-title fw-semibold mb-0"><i class="bi bi-envelope-at-fill me-2 text-danger"></i>Account Gmail (App Password)</h5>
+                <h5 class="card-title fw-semibold mb-0"><i class="bi bi-envelope-at-fill me-2 text-danger"></i>Account Email (Gmail & SMTP)</h5>
                 <button class="btn btn-sm btn-danger" onclick="openNewGmailDialog()">
-                  <i class="bi bi-plus-lg me-1"></i> Aggiungi Account Gmail
+                  <i class="bi bi-plus-lg me-1"></i> Aggiungi Account Email
                 </button>
               </div>
               <div class="card-body p-0">
@@ -405,47 +387,17 @@
                   <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                       <tr>
+                        <th>Nome / Tipo</th>
                         <th>App Collegata</th>
-                        <th>Indirizzo Email</th>
-                        <th>Nome Mittente</th>
+                        <th>Indirizzo Mittente</th>
+                        <th>Host : Porta</th>
                         <th>Stato</th>
                         <th>Creato il</th>
                         <th class="text-end">Azioni</th>
                       </tr>
                     </thead>
                     <tbody id="tbody-gmail">
-                      <tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-hourglass-split me-1"></i> Caricamento account Gmail...</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- SECTION: SMTP -->
-          <section id="section-smtp" class="dashboard-section d-none">
-            <div class="card shadow-sm border-0">
-              <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
-                <h5 class="card-title fw-semibold mb-0"><i class="bi bi-send-check-fill me-2 text-success"></i>Server SMTP Custom</h5>
-                <button class="btn btn-sm btn-success" onclick="openNewSmtpDialog()">
-                  <i class="bi bi-plus-lg me-1"></i> Aggiungi Server SMTP
-                </button>
-              </div>
-              <div class="card-body p-0">
-                <div class="table-responsive">
-                  <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>App Collegata</th>
-                        <th>Host : Porta</th>
-                        <th>Username / From</th>
-                        <th>TLS/SSL</th>
-                        <th>Stato</th>
-                        <th class="text-end">Azioni</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tbody-smtp">
-                      <tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-hourglass-split me-1"></i> Caricamento server SMTP...</td></tr>
+                      <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-hourglass-split me-1"></i> Caricamento account Email...</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -623,11 +575,11 @@
     </div>
   </dialog>
 
-  <!-- New Gmail Dialog -->
+  <!-- New Email (Gmail / Custom SMTP) Dialog -->
   <dialog id="dialog-new-gmail" class="dashboard-dialog" closedby="any">
     <div class="dialog-content">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0"><i class="bi bi-envelope-at-fill me-2 text-danger"></i>Configura Gmail App Password</h5>
+        <h5 class="fw-bold mb-0"><i class="bi bi-envelope-at-fill me-2 text-danger"></i>Configura Account Email</h5>
         <button type="button" class="btn-close" onclick="closeDialog('dialog-new-gmail')"></button>
       </div>
       <form id="form-new-gmail" onsubmit="handleCreateGmail(event)">
@@ -636,75 +588,31 @@
           <select class="form-select select-app-list" id="gmail-app-id" required></select>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Indirizzo Gmail</label>
-          <input type="email" class="form-control" id="gmail-email" placeholder="nome@gmail.com" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Password per le Applicazioni (16 caratteri)</label>
-          <input type="password" class="form-control font-monospace" id="gmail-app-password" placeholder="xxxx xxxx xxxx xxxx" required>
-          <div class="form-text small">Generabile in Sicurezza Account Google &gt; Password per le app.</div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Nome Mittente (Opzionale)</label>
-          <input type="text" class="form-control" id="gmail-sender-name" placeholder="es. Assistenza Clienti">
-        </div>
-        <div class="d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-secondary" onclick="closeDialog('dialog-new-gmail')">Annulla</button>
-          <button type="submit" class="btn btn-primary">Salva Gmail</button>
-        </div>
-      </form>
-    </div>
-  </dialog>
-
-  <!-- New SMTP Dialog -->
-  <dialog id="dialog-new-smtp" class="dashboard-dialog" closedby="any">
-    <div class="dialog-content">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0"><i class="bi bi-send-check-fill me-2 text-success"></i>Configura Server SMTP Custom</h5>
-        <button type="button" class="btn-close" onclick="closeDialog('dialog-new-smtp')"></button>
-      </div>
-      <form id="form-new-smtp" onsubmit="handleCreateSmtp(event)">
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Applicazione</label>
-          <select class="form-select select-app-list" id="smtp-app-id" required></select>
+          <label class="form-label fw-semibold">Nome Configurazione</label>
+          <input type="text" class="form-control" id="gmail-config-name" placeholder="es. Notifiche Gmail o SMTP Aziendale" required>
         </div>
         <div class="row g-2 mb-3">
           <div class="col-8">
             <label class="form-label fw-semibold">Host SMTP</label>
-            <input type="text" class="form-control" id="smtp-host" placeholder="smtp.tuodominio.it" required>
+            <input type="text" class="form-control font-monospace" id="gmail-smtp-host" value="smtp.gmail.com" required>
           </div>
           <div class="col-4">
             <label class="form-label fw-semibold">Porta</label>
-            <input type="number" class="form-control" id="smtp-port" value="587" required>
+            <input type="number" class="form-control font-monospace" id="gmail-smtp-port" value="587" required>
           </div>
         </div>
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <label class="form-label fw-semibold">Username SMTP</label>
-            <input type="text" class="form-control" id="smtp-username" placeholder="user@tuodominio.it" required>
-          </div>
-          <div class="col-6">
-            <label class="form-label fw-semibold">Password</label>
-            <input type="password" class="form-control" id="smtp-password" required>
-          </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Indirizzo Email (Account / Mittente)</label>
+          <input type="email" class="form-control" id="gmail-email" placeholder="nome@gmail.com o email@azienda.it" required>
         </div>
-        <div class="row g-2 mb-3">
-          <div class="col-6">
-            <label class="form-label fw-semibold">Indirizzo Mittente (From)</label>
-            <input type="email" class="form-control" id="smtp-from-email" placeholder="noreply@tuodominio.it" required>
-          </div>
-          <div class="col-6">
-            <label class="form-label fw-semibold">Nome Mittente</label>
-            <input type="text" class="form-control" id="smtp-from-name" placeholder="Notifiche Server">
-          </div>
-        </div>
-        <div class="form-check form-switch mb-3">
-          <input class="form-check-input" type="checkbox" id="smtp-tls" checked>
-          <label class="form-check-label" for="smtp-tls">Abilita STARTTLS (Consigliato per porta 587)</label>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password / Password per le Applicazioni</label>
+          <input type="password" class="form-control font-monospace" id="gmail-app-password" placeholder="Password o app password di 16 caratteri" required>
+          <div class="form-text small">Per Gmail usa una <em>Password per le app</em> generata nell'account Google.</div>
         </div>
         <div class="d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-secondary" onclick="closeDialog('dialog-new-smtp')">Annulla</button>
-          <button type="submit" class="btn btn-primary">Salva SMTP</button>
+          <button type="button" class="btn btn-secondary" onclick="closeDialog('dialog-new-gmail')">Annulla</button>
+          <button type="submit" class="btn btn-primary">Salva Configurazione Email</button>
         </div>
       </form>
     </div>
