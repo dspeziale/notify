@@ -1,0 +1,15 @@
+/* PT Sans Narrow Local Fonts */
+@font-face {
+  font-family: 'PT Sans Narrow';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/vendor/fonts/PTSansNarrow-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'PT Sans Narrow';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/static/vendor/fonts/PTSansNarrow-Bold.ttf') format('truetype');
+}

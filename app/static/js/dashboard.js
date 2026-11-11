@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
    ============================================================================== */
 
 function initThemeAndFontControls() {
-  // 1. Theme Management
-  const storedTheme = localStorage.getItem('ng_theme') || 'dark';
+  // 1. Theme Management (Default: light)
+  const storedTheme = localStorage.getItem('ng_theme') || 'light';
   applyTheme(storedTheme);
 
   document.querySelectorAll('[data-bs-theme-value]').forEach(btn => {

@@ -1,9 +1,20 @@
+@import url('/static/vendor/fonts/pt-sans-narrow.css');
+
 /* ==============================================================================
    NOTIFICATION GATEWAY - ADMINLTE 4.0 COMPONENT CUSTOMIZATIONS
    ============================================================================== */
 
 :root {
   color-scheme: light dark;
+  --bs-font-sans-serif: 'PT Sans Narrow', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bs-body-font-family: var(--bs-font-sans-serif);
+  --bs-body-font-size: 20px;
+}
+
+body {
+  font-family: var(--bs-body-font-family) !important;
+  font-size: var(--bs-body-font-size);
+  letter-spacing: 0.02em;
 }
 
 :root[data-bs-theme="dark"] {
@@ -14,11 +25,42 @@
   color-scheme: light;
 }
 
-/* Font Size Scaling */
-html.font-size-sm { font-size: 13.5px; }
-html.font-size-md { font-size: 15.5px; }
-html.font-size-lg { font-size: 18px; }
-html.font-size-xl { font-size: 20px; }
+/* Font Size Scaling (Base from 20px) */
+body.font-size-sm { font-size: 16px !important; }
+body.font-size-md { font-size: 20px !important; }
+body.font-size-lg { font-size: 23px !important; }
+body.font-size-xl { font-size: 26px !important; }
+
+/* Ensure Sidebar Theme Synchronization */
+[data-bs-theme="light"] .app-sidebar {
+  background-color: var(--bs-tertiary-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-right: 1px solid var(--bs-border-color) !important;
+}
+
+[data-bs-theme="light"] .app-sidebar .brand-link {
+  color: var(--bs-body-color) !important;
+  border-bottom: 1px solid var(--bs-border-color) !important;
+}
+
+[data-bs-theme="light"] .app-sidebar .nav-link {
+  color: var(--bs-secondary-color) !important;
+}
+
+[data-bs-theme="light"] .app-sidebar .nav-link:hover,
+[data-bs-theme="light"] .app-sidebar .nav-link.active {
+  color: var(--bs-primary) !important;
+  background-color: var(--bs-primary-bg-subtle) !important;
+}
+
+[data-bs-theme="light"] .app-sidebar .nav-header {
+  color: var(--bs-secondary-color) !important;
+}
+
+[data-bs-theme="dark"] .app-sidebar {
+  background-color: #1e2227 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
 
 /* Code & Monospace Elements */
 .font-monospace {
@@ -235,3 +277,4 @@ dialog::backdrop {
   width: 200px;
   outline: none;
 }
+
