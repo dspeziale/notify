@@ -327,7 +327,7 @@ async function loadHealth() {
 
     setSafe('health-db', data.components?.database || 'OK');
     setSafe('health-redis', data.components?.redis || 'OK');
-    const ver = data.version ? `v${data.version}` : 'v0.6.6';
+    const ver = data.version ? `v${data.version}` : 'v0.6.7';
     setSafe('health-version', ver);
     const footerVer = document.getElementById('footer-version-tag');
     if (footerVer) footerVer.innerHTML = `<i class="bi bi-info-circle me-1"></i>Versione: <strong>${ver}</strong>`;
@@ -933,6 +933,30 @@ async function loadInboundMessages() {
     }).join('');
   } catch (err) {
     console.error('Failed to load inbound messages:', err);
+  }
+}
+
+async function triggerTelegramSync() {
+  const btn = document.getElementById('btn-sync-telegram');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sincronizzazione...';
+  }
+
+  try {
+    const res = await apiCall('/api/v1/inbound/telegram/poll', { method: 'POST' });
+    const count = res?.messages_fetched || 0;
+    showToast(`Sincronizzazione completata: ${count} nuovi messaggi ricevuti da Telegram!`, 'success');
+    await loadInboundMessages();
+  } catch (err) {
+    console.error('Failed to sync Telegram messages:', err);
+    showToast('Errore durante la sincronizzazione con Telegram: ' + (err.message || err), 'danger');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
   }
 }
 

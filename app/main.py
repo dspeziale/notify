@@ -15,6 +15,7 @@ from app.database.base import Base
 from app.database.session import engine
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.services.telegram_polling_service import run_telegram_inbound_poller
 
 
 @asynccontextmanager
@@ -28,8 +29,17 @@ async def lifespan(app: FastAPI):
     except Exception:
         # Schema already created or being created by another worker
         pass
+
+    # Start background polling for Telegram inbound messages
+    polling_task = asyncio.create_task(run_telegram_inbound_poller())
+
     yield
     # Shutdown
+    polling_task.cancel()
+    try:
+        await polling_task
+    except asyncio.CancelledError:
+        pass
     await engine.dispose()
 
 

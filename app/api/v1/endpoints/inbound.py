@@ -17,6 +17,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/inbound", tags=["Inbound Messages"])
 
 
+@router.post("/telegram/poll", summary="Trigger Immediate Telegram Polling (Admin)")
+async def trigger_telegram_polling(
+    admin_auth: bool = Depends(require_admin_auth),
+    db: AsyncSession = Depends(get_db),
+):
+    """Triggers an immediate update check across all active Telegram bots."""
+    from app.services.telegram_polling_service import sync_telegram_inbound_messages
+
+    new_count = await sync_telegram_inbound_messages(db)
+    return {"ok": True, "messages_fetched": new_count}
+
+
 @router.post("/telegram/{config_id}", summary="Telegram Webhook Receiver")
 async def receive_telegram_webhook(
     config_id: uuid.UUID,
